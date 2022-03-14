@@ -11,6 +11,7 @@ import pokemonImage from './assets/pokemon/5.png'
 // console.log(nyancat)
 import { BlurView } from 'expo-blur'
 import axios from 'axios'
+import pokemonKorean from './assets/pokemon/pokemon-korean.json'
 
 type ImageUri = {
   localUri: string;
@@ -28,7 +29,7 @@ export default function App() {
   const [selectedImage, setSelectedImage] = useState<ImageUri>(null)
   const [pokemon, setPokemon] = useState<any>()
   const [sound, setSound] = useState<any>()
-  const [pokemonId, setPokemonId] = useState<string>('')
+  const [pokemonId, setPokemonId] = useState<string>('1')
   const id = 1
   const getPokemon = async (id: string) => {
     const data: Response = await fetch(`https://pokeapi.co/api/v2/pokemon/${id}`)
@@ -37,7 +38,6 @@ export default function App() {
       { uri: `https://pokemoncries.com/cries-old/${id}.mp3` },
       // {shouldPlay: true}
     );
-    console.log(sound)
     setSound(sound)
     const pokemon = await data.json()
     const pokemonType: string = pokemon.types.map((poke: any) => poke.type.name).join(", ")
@@ -64,7 +64,7 @@ export default function App() {
   }
 
   useEffect(() => {
-    getPokemon('5')
+    // getPokemon('5')
     return() => {
       setSelectedImage(null)
     }
@@ -79,7 +79,9 @@ export default function App() {
   }, [sound]);
   useEffect(() => {
     console.log('pokemonId is ', pokemonId)
-    getPokemon(pokemonId)
+    if(pokemonId) {
+      getPokemon(pokemonId)
+    }
   }, [pokemonId])
   // useEffect(() => {console.log(pokemon)}, [pokemon])
   const openImagePickerAsync = async() => {
@@ -112,6 +114,23 @@ export default function App() {
     await Sharing.shareAsync(selectedImage!.localUri)
   }
 
+  const pokemonNumbering = (pokemonId: string) => {
+    switch (pokemonId.length) {
+      case 1:
+        return `00${pokemonId}`
+      case 2:
+        return `0${pokemonId}`
+      default:
+        return pokemonId
+    }
+  }
+  const koreanNameChip = () => {
+    if (pokemonId) {
+      return (
+        <Text style={styles.sealName}>{pokemonId ? `No. ${pokemonNumbering(pokemonId)} ${pokemonKorean[parseInt(pokemonId) - 1].name}` : ''}</Text>
+      )
+    }
+  }
   // SplashScreen.preventAutoHideAsync()
   // setTimeout(SplashScreen.hideAsync, 2000)
   return (
@@ -126,17 +145,18 @@ export default function App() {
           <Text style={styles.buttonText}>Share this photo</Text>
         </TouchableOpacity>
       } */}
-      <TextInput value={pokemonId} placeholder='Please Enter Pokemon ID' onChangeText={(text) => {setPokemonId(text)}}/>
+      <TextInput style={styles.input} value={pokemonId} placeholder='Please Enter Pokemon ID' onChangeText={(text) => {console.log('new text is ', text); setPokemonId(text)}}/>
       {pokemon && 
       <>
       {/* <Image source={{uri: pokemon.image}} style={[StyleSheet.absoluteFill, styles.thumbnail]}/> */}
         <View style={styles.seal}>
-          <Text style={styles.sealName}>{pokemon.name}</Text>
-          <ImageBackground source={{uri: pokemon.imageFrontShiny}}style={styles.sealImage}/>
-          <Button onPress={playSound} title="Cry" color="red"/>
+          {/* <Text style={styles.sealName}>{pokemon.name}</Text> */}
+            {koreanNameChip()}
+          <Image source={{uri: pokemon.imageFrontShiny}} style={styles.sealImage} resizeMethod='scale' />
         </View>
       </>
       }
+      <Button onPress={playSound} title="Cry" color="red"/>
       {/* <BlurView intensity={50} style={styles.blurContainer} tint='light'>
         <Text style={[styles.buttonText, {color: '#fff'}]}>Blurred?</Text>
       </BlurView>
@@ -184,25 +204,41 @@ const styles = StyleSheet.create({
     width: '100%'
   },
   seal: {
-    width: 300,
-    height: 300,
+    width: 170,
+    height: 170,
     borderColor: '#000',
     borderWidth: 1,
-    padding: 10,
-    alignContent: 'center',
-    justifyContent: 'space-between',
-    flexDirection: 'column',
+    paddingTop: 10,
+    paddingLeft: 10,
+    // alignContent: 'center',
+    // justifyContent: 'space-between',
+    // flexDirection: 'column',
   },
   sealName: {
-    borderRadius: 10,
-    backgroundColor: 'red',
-    alignSelf: 'flex-start'
+    alignSelf: 'flex-start',
+    fontSize: 12,
+    fontWeight: 'bold',
+    paddingTop: 0,
+    paddingBottom: 0,
+    paddingLeft: 8,
+    paddingRight: 8,
+    borderColor: '#fff',
+    backgroundColor: '#68a0cf',
+    borderRadius: 5,
+    borderWidth: 1,
+    overflow: 'hidden',
   },
   sealImage: {
-    width: 200,
-    height: 200,
-    resizeMode: 'cover',
+    flex: 1,
     // tintColor: '#000000',
     // opacity: 0.7
+  },
+  input : {
+    width: 250,
+    height: 44,
+    padding: 10,
+    marginTop: 20,
+    marginBottom: 10,
+    backgroundColor: '#e8e8e8'
   }
 });
