@@ -3,7 +3,8 @@ import { StyleSheet, Text, View, Image, Dimensions, TouchableOpacity, Platform, 
 import pokemonKorean from '../../assets/pokemon/pokemon-korean.json'
 import { useDebounce } from 'use-debounce';
 import {Audio} from 'expo-av'
-
+import { Center, HStack, useColorModeValue } from 'native-base';
+//https://docs.nativebase.io/default-theme
 type ImageUri = {
     localUri: string;
     remoteUri?: string | null;
@@ -25,9 +26,10 @@ export default function Pokedex() {
       }, [sound]);
 
     useEffect(() => {
-    if(value) {
+      if(value) {
+        console.log('pokemon id', value)
         getPokemon(value)
-    }
+      }
     }, [value])
 
     const id = 1
@@ -47,6 +49,7 @@ export default function Pokedex() {
           imageFront: pokemon.sprites.front_default,
           imageBack: pokemon.sprites.back_default,
           type: pokemonType,
+          koreanName: pokemonKorean[parseInt(id) - 1].name
           // imageFront: pokemon.sprites.front_shiny
           // back_default:"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/back/132.png"
           // back_female:null
@@ -57,6 +60,7 @@ export default function Pokedex() {
           // front_shiny:"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/shiny/132.png"
           // front_shiny_female:null
         }
+        console.log(transformedPokemon.type.split(', ')[0])
         setPokemon(transformedPokemon)
       }, [id])
 
@@ -79,13 +83,13 @@ export default function Pokedex() {
       const koreanNameChip = () => {
         if (value) {
           return (
-            <Text style={styles.sealName}>{value ? `No. ${pokemonNumbering(value)} ${parseInt(value) < 151 ? pokemonKorean[parseInt(value) - 1].name : pokemon.name}` : ''}</Text>
+            <Text style={styles.sealName}>{value ? `No. ${pokemonNumbering(value)} ${pokemon.koreanName}` : ''}</Text>
           )
         }
       }
 
     return (
-       <View style={styles.container}>
+      <>
         {/* <Image source={nyancat} style={ [styles.nyancat, StyleSheet.absoluteFill]}/>
         {selectedImage && <Image source={{uri: selectedImage.localUri}} style={styles.thumbnail}/>}
         <TouchableOpacity onPress={openImagePickerAsync} style={styles.button}>
@@ -96,7 +100,18 @@ export default function Pokedex() {
             <Text style={styles.buttonText}>Share this photo</Text>
           </TouchableOpacity>
         } */}
-        <TextInput style={styles.input} value={pokemonId} placeholder='Please Enter Pokemon ID' onChangeText={(text) => {console.log('new text is ', text); setPokemonId(text)}}/>
+        {pokemon && 
+        <HStack 
+        alignItems="center"
+        w="full"
+        justifyContent="center"
+        space={2}
+        py={5}
+        >
+          {pokemon.koreanName.split('').map((char: string) => <Center h="50" w="50" rounded="md" shadow={2} bg={useColorModeValue('muted.50', 'muted.100')}>{char}</Center>)}
+        </HStack>
+        }
+        <TextInput style={styles.input} value={pokemonId} placeholder='Please Enter Pokemon ID' onChangeText={(text) => {if(parseInt(text) <= 151) {setPokemonId(text)}}}/>
         <Pressable onPress={playSound} style={styles.cry}>
           <Text>Cry</Text>
         </Pressable>
@@ -121,7 +136,7 @@ export default function Pokedex() {
           <Text style={[styles.buttonText, {color: '#fff'}]}>Blurred?</Text>
         </BlurView> */}
         {/* <StatusBar style="auto" /> */}
-      </View>
+        </>
     )
 }
 
@@ -164,6 +179,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     paddingTop: 10,
     paddingLeft: 10,
+    backgroundColor: '#fff'
     // alignContent: 'center',
     // justifyContent: 'space-between',
     // flexDirection: 'column',

@@ -3,7 +3,8 @@ import {
   Box,
   useColorModeValue,
   Text,
-  Center
+  Center,
+  VStack
 } from 'native-base'
 import Pokedex from '../components/pokedex'
 import Navbar from '../components/navbar'
@@ -12,11 +13,14 @@ const PokeScreen = () => {
   return (
     <Box
       flex={1}
-      bg={useColorModeValue('warmGray.50', 'warmGray.900')}
+      _dark={{bg: 'blueGray.900'}} _light={{bg: 'blueGray.50'}}
       w="full"
+      px={5}
     >
         <Navbar />
-        <Pokedex />
+        <VStack space={5} alignItems="center">
+          <Pokedex />
+        </VStack>
     </Box>
   )
 }
