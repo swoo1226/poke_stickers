@@ -46,15 +46,11 @@ const AboutScreen = () => {
               alt="author"
             /> */}
           </Box>
-          <Text fontSize="md" w="full">
-            This is a React Native tutorial built in the YouTube channel called
-            DevAsLife.
-          </Text>
           <LinkButton
             colorScheme="red"
             size="lg"
             borderRadius="full"
-            href="https://www.youtube.com/devaslife"
+            href="https://www.youtube.com/channel/UCXVQ590QdaWOzXC0zFMGl2g"
             leftIcon={
               <Icon as={Feather} name="youtube" size="sm" opacity={0.5} />
             }
@@ -65,27 +61,12 @@ const AboutScreen = () => {
             colorScheme={useColorModeValue('blue', 'darkBlue')}
             size="lg"
             borderRadius="full"
-            href="https://twitter.com/inkdrop_app"
+            href="https://github.com/swoo1226"
             leftIcon={
-              <Icon as={Feather} name="twitter" size="sm" opacity={0.5} />
+              <Icon as={Feather} name="github" size="sm" opacity={0.5} />
             }
           >
-            @inkdrop_app
-          </LinkButton>
-          <Text fontSize="md" w="full">
-            Are you looking for a Markdown note-taking app? Check out my app
-            called Inkdrop!
-          </Text>
-          <LinkButton
-            colorScheme="purple"
-            size="lg"
-            borderRadius="full"
-            href="https://www.inkdrop.app/"
-            leftIcon={
-              <Icon as={Feather} name="external-link" size="sm" opacity={0.5} />
-            }
-          >
-            https://www.inkdrop.app/
+            github
           </LinkButton>
         </VStack>
       </ScrollView>
