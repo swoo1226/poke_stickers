@@ -170,21 +170,24 @@ export default function Pokedex() {
       }
 
     const nameSplitter = (name: string) => (
-      name.split('').map((char: string) => <Center key={shortid.generate()} h="50" w="50" rounded="md" shadow={2} bg={charBackgroundColor}>{char}</Center>)
-      )
+      name.split('').map((char: string) => <Center key={shortid.generate()} h="50" w="50" rounded="md" shadow={2} bg={charBackgroundColor}><Text _dark={{color: 'coolGray.800'}}>?</Text></Center>)
+    )
       const guessCheckedColors = (guessed: Guess[]) => {
         const guess = guessed.join(',')
+        console.log('guess on check colors ', guess)
         const checkColors = {
-          'strike': 'green.200',
-          'left': 'yellow.200',
-          'right': 'yellow.400',
-          'strike,left': 'purple.300',
-          'strike,right': 'purple.300',
+          'strike': 'green.300',
+          'left': 'yellow.300',
+          'right': 'yellow.300',
+          'strike,left': 'lime.200',
+          'strike,right': 'lime.200',
+          'left,right': 'yellow.200',
+          'left,strike': 'lime.200'
         }
-        return checkColors[guess]??'red.200'
+        return checkColors[guess]??'red.400'
       }
     const expectationJoiner = (expectation: Expectation[]) => (
-      expectation.map((guessed) => <Center bg={guessCheckedColors(guessed.guessed)} key={guessed.char} h="50" w="50" rounded="md" shadow={2}>{guessed.char}</Center>)
+      expectation.map((guessed) => <Center bg={guessCheckedColors(guessed.guessed)} key={shortid.generate()} h="50" w="50" rounded="md" shadow={2}>{guessed.char}</Center>)
       )
     const guessedViews = (expectations: Expectation[][]) => {
       return (
@@ -207,8 +210,6 @@ export default function Pokedex() {
     const onGuess = useCallback(() => {
       console.log(pokemon?.koreanName, guess)
       const koreanName = pokemon?.koreanName
-      const guessChars = guess.split('')
-      const answerChars = koreanName?.split('')
       /**
        * 1. 도감에 존재하는 guess인지?
        * 2. 단어 하나씩 분석해서,
@@ -216,13 +217,26 @@ export default function Pokedex() {
        * 2-2) 위치가 다르고 포함되는지? => yellow
        * 2-3) 포함되지 않는지? => gray or black
        */
-
       //1
       if(!pokemonKorean.find((pokemon) => pokemon.name === guess)) {
         alert('도감에 존재하지 않는 포켓몬이에요')
         return
       }
-
+      if(koreanName?.length !== guess.length) {
+        alert(`${koreanName?.length}글자 이름을 가진 포켓몬이에요`)
+        return
+      }
+      if(guess === koreanName) {
+        const guessResults: Expectation[] = koreanName.split('').map((char) => {return {char, guessed: ['strike']}})
+        setExpectations(prev => {
+          let orgExpectations = [...prev]
+          orgExpectations.push(guessResults)
+          return orgExpectations
+        })
+        return
+      }
+      const guessChars = guess.split('')
+      const answerChars = koreanName?.split('')
       let guessResults: Expectation[] = []
       guessChars.map((char: string, index: number) => {
         console.log('현재 추측 단어 ', char)
@@ -248,7 +262,7 @@ export default function Pokedex() {
         return orgExpectations
       })
       //guessResults의 길이에 따라서 strike, ball 결정될 듯
-      // console.log(guessResults)
+      console.log(guessResults)
       //2-1
       // guessChars.map((char: string, index: number) => {
       //   const answer = koreanName![index]
@@ -277,6 +291,7 @@ export default function Pokedex() {
         {/* <TouchableWithoutFeedback onPress={Keyboard.dismiss}> */}
         {expectations && guessedViews(expectations)}
         <Input w={250} style={styles.input} value={pokemonId} placeholder='Please Enter Pokemon ID' onChangeText={(text) => {if(parseInt(text) <= 151 || !text) {setPokemonId(text)}}}/>
+        {pokemon && <HStack mt={10} space={2} py={5}>{nameSplitter(pokemon?.koreanName)}</HStack>}
         <Pressable onPress={playSound} style={styles.cry}>
           <Text>Cry</Text>
         </Pressable>
