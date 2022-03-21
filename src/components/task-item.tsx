@@ -48,6 +48,7 @@ const TaskItem = ({isEditing, isDone, subject, onPressLabel, onRemove, onChangeS
     )
 
     const handleRemoveTask = useCallback(() => {
+      console.log('swipe left ', id, subject)
       onRemove && onRemove(id)
     }, [onRemove])
 
@@ -87,6 +88,7 @@ const TaskItem = ({isEditing, isDone, subject, onPressLabel, onRemove, onChangeS
                 // onChange={handleChangeSubject}
                 onChange={handleChangeSubject}
                 onBlur={onFinishEditing}
+                bg={useColorModeValue('white', 'warmGray.500')}
             />
           </HStack>
         </SwipableView>

@@ -32,7 +32,13 @@ export default function MainScreen() {
             subject: '라면 사오기',
             done: false
         },
+        {
+            id: shortid.generate(),
+            subject: '아름이 데려오기',
+            done: false
+        },
     ]
+    console.log('initioal data is ', initialData)
     const [data, setData] = useState(initialData)
 
     const handleChangeTaskItemSubject = useCallback((id: string, newSubject: string) => {
@@ -45,8 +51,7 @@ export default function MainScreen() {
     const handleRemoveTaskItem =  useCallback((id: string) => {
         setData(prevData => {
             let newData = [...prevData]
-            const removeTaskIndex = newData.findIndex((task) => task.id = id)
-            newData.splice(removeTaskIndex, 1)
+            newData = newData.filter((task) => task.id !== id)
             return newData
         })
     }, [data])
