@@ -9,7 +9,7 @@ const Drawer = createDrawerNavigator()
 const App = () => {
     return (
         <Drawer.Navigator
-        initialRouteName="Main"
+        initialRouteName="Poke"
         drawerContent={props => <Sidebar {...props} />}
         screenOptions={{
             headerShown: false,

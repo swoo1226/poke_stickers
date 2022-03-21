@@ -16,11 +16,11 @@ const PokeScreen = () => {
       _dark={{bg: 'blueGray.900'}} _light={{bg: 'blueGray.50'}}
       w="full"
       px={5}
+      height='100%'
+      pb={10}
     >
-        <Navbar />
-        <VStack space={5} alignItems="center">
-          <Pokedex />
-        </VStack>
+      <Navbar />
+      <Pokedex />
     </Box>
   )
 }

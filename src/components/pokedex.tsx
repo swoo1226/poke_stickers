@@ -1,18 +1,20 @@
 import {useState, useEffect, useCallback} from 'react'
-import { StyleSheet, Text, View, Image, Dimensions, TouchableOpacity, Platform, ImageBackground, Pressable, TextInput } from 'react-native';
+import { StyleSheet, View, Image, Dimensions, TouchableOpacity, Platform, ImageBackground, TextInput, Keyboard } from 'react-native';
 import pokemonKorean from '../../assets/pokemon/pokemon-korean.json'
 import { useDebounce } from 'use-debounce';
 import {Audio} from 'expo-av'
-import {Chip} from 'react-native-paper'
-// import { PokemonTypeColor, PokemonType } from '../utils/color'
-import { Center, HStack, useColorModeValue, Input, Box } from 'native-base';
+import { FontAwesome} from '@expo/vector-icons'
+import { Center, HStack, useColorModeValue, Box, Text, Icon, PresenceTransition, VStack, ScrollView, Pressable, Input } from 'native-base';
+import { TouchableWithoutFeedback } from 'react-native-gesture-handler';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view'
+import { alignProperty } from '@mui/material/styles/cssUtils';
+import shortid from 'shortid';
 //https://docs.nativebase.io/default-theme
 type ImageUri = {
     localUri: string;
     remoteUri?: string | null;
   } | null
 
-// type TransformedPokemonType = keyof PokemonType
 type PokemonTypeColors = {
   normal: string
   poison: string
@@ -33,9 +35,26 @@ type PokemonTypeColors = {
   electric: string
   fairy: string
 }
+
 type PokemonColorType = {
   [key in keyof PokemonTypeColors]: string;
 };
+
+interface Pokemon {
+  id: number
+  name: string
+  imageFront: string
+  imageBack: string
+  type: keyof PokemonTypeColors
+  koreanName: string
+}
+
+type Guess = 'strike' | 'ball' | 'out' | 'left' | 'right'
+type Expectation = {
+  char: string;
+  guessed:  Guess[]
+}
+
 const PokemonTypeColor: PokemonColorType = {
   normal: '#bdbdaf',
   poison: '#a95c9f',
@@ -57,37 +76,35 @@ const PokemonTypeColor: PokemonColorType = {
   fairy: '#f9adff',
 }
 
-interface Pokemon {
-  id: number
-  name: string
-  imageFront: string
-  imageBack: string
-  type: keyof PokemonTypeColors
-  koreanName: string
-}
-
 export default function Pokedex() {
-    const [pokemon, setPokemon] = useState<Pokemon>()
+    const [pokemon, setPokemon] = useState<Pokemon|null>()
     const [sound, setSound] = useState<any>()
     const [pokemonId, setPokemonId] = useState<string>('1')
     const [value] = useDebounce(pokemonId, 500)
+    const charBackgroundColor = useColorModeValue('muted.50', 'warmGray.200')
+    const [guess, setGuess] = useState<string>('')
+    const [expectations, setExpectations] = useState<Expectation[][]>([])
 
     useEffect(() => {
         return sound
           ? () => {
-              console.log('Unloading Sound');
               sound.unloadAsync(); }
           : undefined;
       }, [sound]);
 
     useEffect(() => {
       if(value) {
-        console.log('pokemon id', value)
         getPokemon(value)
       }
     }, [value])
 
-    const id = 1
+    useEffect(() => {
+      return() => {
+        setPokemon(null)
+        setGuess('')
+        setExpectations([])
+      }
+    }, [])
     const getPokemon = useCallback(async (id: string) => {
         const data: Response = await fetch(`https://pokeapi.co/api/v2/pokemon/${id}`)
         await Audio.setAudioModeAsync({ playsInSilentModeIOS: true });
@@ -97,16 +114,15 @@ export default function Pokedex() {
         );
         setSound(sound)
         const pokemon = await data.json()
-        console.log(pokemon.types)
         const pokemonType: keyof PokemonTypeColors = pokemon.types.map((info: any) => info.type.name)[0]
         const transformedPokemon: Pokemon = {
           id: pokemon.id,
           name: pokemon.name,
-          imageFront: pokemon.sprites.front_default,
+          // imageFront: pokemon.sprites.front_default,
           imageBack: pokemon.sprites.back_default,
           type: pokemonType,
-          koreanName: pokemonKorean[parseInt(id) - 1].name
-          // imageFront: pokemon.sprites.front_shiny
+          koreanName: pokemonKorean[parseInt(id) - 1].name,
+          imageFront: pokemon.sprites.front_shiny
           // back_default:"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/back/132.png"
           // back_female:null
           // back_shiny:"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/back/shiny/132.png"
@@ -117,37 +133,35 @@ export default function Pokedex() {
           // front_shiny_female:null
         }
         setPokemon(transformedPokemon)
-      }, [id])
-
+      }, [pokemonId])
 
       const playSound = () => {
         sound.replayAsync()
       }
 
-      const pokemonNumbering = (pokemonId: string) => {
-        switch (pokemonId.length) {
-          case 1:
-            return `00${pokemonId}`
-          case 2:
-            return `0${pokemonId}`
-          default:
-            return pokemonId
-        }
-      }
+      // const pokemonNumbering = (pokemonId: string) => {
+      //   switch (pokemonId.length) {
+      //     case 1:
+      //       return `00${pokemonId}`
+      //     case 2:
+      //       return `0${pokemonId}`
+      //     default:
+      //       return pokemonId
+      //   }
+      // }
 
       const koreanNameChip = () => {
-        if (value && pokemon) {
+        if (value) {
           return (
            <HStack style={{alignItems: 'center', borderRadius: 15, borderWidth: 0.5, borderColor: 'gray', alignSelf: 'flex-start'}} shadow={2}>
              <HStack style={{alignItems: 'center'}}>
                <Box borderRadius={15} backgroundColor={PokemonTypeColor[pokemon!.type]} pl={2} pr={2}>
-                 {pokemonNumbering(value)}
-                </Box>
-              {/* <Chip style={{backgroundColor: PokemonTypeColor[pokemon!.type]}}>
-                {pokemonNumbering(value)}
-              </Chip> */}
-              <Center pl={1} pr={2} fontWeight='bold'>
+                {pokemonKorean[parseInt(value) - 1].num}
+              </Box>
+              <Center pl={1} pr={2}>
+                <Text fontWeight='bold' _dark={{color: 'dark.50'}}>
                 {pokemon!.koreanName}
+                </Text>
               </Center>
              </HStack>
             </HStack>
@@ -155,29 +169,113 @@ export default function Pokedex() {
         }
       }
 
+    const nameSplitter = (name: string) => (
+      name.split('').map((char: string) => <Center key={shortid.generate()} h="50" w="50" rounded="md" shadow={2} bg={charBackgroundColor}>{char}</Center>)
+      )
+      const guessCheckedColors = (guessed: Guess[]) => {
+        const guess = guessed.join(',')
+        const checkColors = {
+          'strike': 'green.200',
+          'left': 'yellow.200',
+          'right': 'yellow.400',
+          'strike,left': 'purple.300',
+          'strike,right': 'purple.300',
+        }
+        return checkColors[guess]??'red.200'
+      }
+    const expectationJoiner = (expectation: Expectation[]) => (
+      expectation.map((guessed) => <Center bg={guessCheckedColors(guessed.guessed)} key={guessed.char} h="50" w="50" rounded="md" shadow={2}>{guessed.char}</Center>)
+      )
+    const guessedViews = (expectations: Expectation[][]) => {
+      return (
+        <ScrollView w='full' h='50%'>
+          {expectations.map((expectation, index) => 
+            <HStack 
+              alignItems="center"
+              w="full"
+              justifyContent="center"
+              space={2}
+              py={5}
+              key={`expectation${index}`}
+            >
+            {expectationJoiner(expectation)}
+            </HStack>
+          )}
+        </ScrollView>
+      )
+    }
+    const onGuess = useCallback(() => {
+      console.log(pokemon?.koreanName, guess)
+      const koreanName = pokemon?.koreanName
+      const guessChars = guess.split('')
+      const answerChars = koreanName?.split('')
+      /**
+       * 1. 도감에 존재하는 guess인지?
+       * 2. 단어 하나씩 분석해서,
+       * 2-1) 위치와 단어가 모두 일치하는지? => green
+       * 2-2) 위치가 다르고 포함되는지? => yellow
+       * 2-3) 포함되지 않는지? => gray or black
+       */
+
+      //1
+      if(!pokemonKorean.find((pokemon) => pokemon.name === guess)) {
+        alert('도감에 존재하지 않는 포켓몬이에요')
+        return
+      }
+
+      let guessResults: Expectation[] = []
+      guessChars.map((char: string, index: number) => {
+        console.log('현재 추측 단어 ', char)
+        let newGuessResult: Expectation = {
+          char,
+          guessed: []
+        }
+        answerChars?.map((answerChar: string, answerIndex: number) => {
+          if(char === answerChar) {
+            console.log(char, index, answerIndex)
+            if(index === answerIndex) {
+              newGuessResult.guessed.push('strike')
+            } else {
+              newGuessResult.guessed.push(index < answerIndex ? 'right' : 'left')
+            }
+          }
+        })
+        guessResults.push(newGuessResult)
+      })
+      setExpectations(prev => {
+        let orgExpectations = [...prev]
+        orgExpectations.push(guessResults)
+        return orgExpectations
+      })
+      //guessResults의 길이에 따라서 strike, ball 결정될 듯
+      // console.log(guessResults)
+      //2-1
+      // guessChars.map((char: string, index: number) => {
+      //   const answer = koreanName![index]
+      //   let guessResult: Expectation = {char, guessed: []}
+      //   if(answer === char) {
+      //     //strike
+      //     guessResult.guessed.push('strike')
+      //   } else {
+      //     if (koreanName!.includes(char)) {
+      //       //ball
+      //       if(koreanName!.indexOf(char) > index) {
+      //       //right ball
+      //       } else { 
+      //       //left ball
+      //       }
+      //     } else {
+      //       //out
+      //     }
+      //   } 
+      // })
+    },[guess])
+
     return (
       <>
-        {/* <Image source={nyancat} style={ [styles.nyancat, StyleSheet.absoluteFill]}/>
-        {selectedImage && <Image source={{uri: selectedImage.localUri}} style={styles.thumbnail}/>}
-        <TouchableOpacity onPress={openImagePickerAsync} style={styles.button}>
-          <Text style={styles.buttonText}>Pick a photo</Text>
-        </TouchableOpacity>
-        {selectedImage && 
-          <TouchableOpacity onPress={openShareDialogAsync} style={styles.button}>
-            <Text style={styles.buttonText}>Share this photo</Text>
-          </TouchableOpacity>
-        } */}
-        {pokemon && 
-        <HStack 
-        alignItems="center"
-        w="full"
-        justifyContent="center"
-        space={2}
-        py={5}
-        >
-          {pokemon.koreanName.split('').map((char: string) => <Center h="50" w="50" rounded="md" shadow={2} bg={useColorModeValue('muted.50', 'muted.100')}>{char}</Center>)}
-        </HStack>
-        }
+      <KeyboardAwareScrollView style={{height: '90%', width: '100%'}} contentContainerStyle={{alignItems: 'center'}} extraScrollHeight={50}>
+        {/* <TouchableWithoutFeedback onPress={Keyboard.dismiss}> */}
+        {expectations && guessedViews(expectations)}
         <Input w={250} style={styles.input} value={pokemonId} placeholder='Please Enter Pokemon ID' onChangeText={(text) => {if(parseInt(text) <= 151 || !text) {setPokemonId(text)}}}/>
         <Pressable onPress={playSound} style={styles.cry}>
           <Text>Cry</Text>
@@ -185,13 +283,17 @@ export default function Pokedex() {
         {pokemon && 
         <>
         {/* <Image source={{uri: pokemon.image}} style={[StyleSheet.absoluteFill, styles.thumbnail]}/> */}
-          <View style={styles.seal}>
+          <Box shadow={1} style={styles.seal}>
             {koreanNameChip()}
             <Image source={{uri: pokemon.imageFront}} style={styles.sealImage} resizeMethod='scale' />
-          </View>
+          </Box>
+          {/* <View style={styles.seal}>
+            {koreanNameChip()}
+            <Image source={{uri: pokemon.imageBack}} style={[styles.sealImage, styles.sealImageVeiled]} resizeMethod='scale' />
+          </View> */}
         </>
         }
-        
+        {/* <Text>{guess??''}</Text> */}
         {/* <BlurView intensity={50} style={styles.blurContainer} tint='light'>
           <Text style={[styles.buttonText, {color: '#fff'}]}>Blurred?</Text>
         </BlurView>
@@ -201,7 +303,11 @@ export default function Pokedex() {
         <BlurView intensity={50} style={[styles.blurContainer]} tint='dark'>
           <Text style={[styles.buttonText, {color: '#fff'}]}>Blurred?</Text>
         </BlurView> */}
-        {/* <StatusBar style="auto" /> */}
+        <Input variant='rounded' w={250} mt={20} mb={20} style={styles.input} value={guess} placeholder='이번 포켓몬의 이름은 뭘까요?' onChangeText={(text) => {setGuess(text)}} 
+        InputRightElement={<Icon onPress={onGuess} mr={3} size={5} as={<FontAwesome name={guess ? 'send' : 'send-o'} />}/>}/>
+        {/* <TextInput style={styles.input} value={guess} placeholder='이번 포켓몬의 이름은 뭘까요?' onChangeText={(text) => {setGuess(text)}} /> */}
+        {/* </TouchableWithoutFeedback> */}
+        </KeyboardAwareScrollView>
         </>
     )
 }
@@ -242,13 +348,10 @@ const styles = StyleSheet.create({
     width: 170,
     height: 170,
     borderColor: '#000',
-    borderWidth: 1,
+    borderWidth: 0.2,
     paddingTop: 10,
     paddingLeft: 10,
     backgroundColor: '#fff'
-    // alignContent: 'center',
-    // justifyContent: 'space-between',
-    // flexDirection: 'column',
   },
   sealName: {
     alignSelf: 'flex-start',
@@ -266,8 +369,10 @@ const styles = StyleSheet.create({
   },
   sealImage: {
     flex: 1,
-    // tintColor: '#000000',
-    // opacity: 0.7
+  },
+  sealImageVeiled: {
+    tintColor: '#000',
+    opacity: 0.1  
   },
   input : {
     width: 250,
@@ -275,9 +380,11 @@ const styles = StyleSheet.create({
     padding: 10,
     marginTop: 20,
     marginBottom: 50,
-    backgroundColor: '#e8e8e8'
+    backgroundColor: '#e8e8e8',
+    borderRadius: 10
   },
   cry: {
+    marginTop: 50,
     marginBottom: 50,
   }
 });
