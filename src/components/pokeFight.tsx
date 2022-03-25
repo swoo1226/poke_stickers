@@ -47,6 +47,7 @@ interface Pokemon {
   imageBack: string
   type: keyof PokemonTypeColors
   koreanName: string
+  strikes: number[]
 }
 
 type Guess = 'strike' | 'ball' | 'out' | 'left' | 'right'
@@ -79,8 +80,7 @@ const PokemonTypeColor: PokemonColorType = {
 export default function PokeFight() {
     const [pokemon, setPokemon] = useState<Pokemon|null>()
     const [sound, setSound] = useState<any>()
-    const [pokemonId, setPokemonId] = useState<string>('5')
-    const [debouncedIdValue] = useDebounce(pokemonId, 700)
+    // const [pokemonId, setPokemonId] = useState<string>('6')
     const charBackgroundColor = useColorModeValue('muted.50', 'warmGray.200')
     const gameBoxColor = useColorModeValue('muted.50', 'indigo.400')
     const [guess, setGuess] = useState<string>('')
@@ -99,35 +99,27 @@ export default function PokeFight() {
       }, [sound]);
 
     useEffect(() => {
-      if(debouncedIdValue) {
-        getPokemon(debouncedIdValue)
-      }
-    }, [debouncedIdValue])
-
-    useEffect(() => {
-      return() => {
+        const randomPokemonId = Math.ceil(Math.random() * 151)
+        getPokemon(String(randomPokemonId))
+        return() => {
         setPokemon(null)
         setGuess('')
         setExpectations([])
-      }
+        }
     }, [])
-    const getPokemon = useCallback(async (id: string) => {
+    const getPokemon = async (id: string) => {
         const data: Response = await fetch(`https://pokeapi.co/api/v2/pokemon/${id}`)
-        await Audio.setAudioModeAsync({ playsInSilentModeIOS: true });
-        const { sound } = await Audio.Sound.createAsync(
-          { uri: `https://pokemoncries.com/cries-old/${id}.mp3` },
-        //   {shouldPlay: true}
-        );
-        setSound(sound)
         const pokemon = await data.json()
         const pokemonType: keyof PokemonTypeColors = pokemon.types.map((info: any) => info.type.name)[0]
+        const koreanName = pokemonKorean[parseInt(id) - 1].name
         const transformedPokemon: Pokemon = {
           id: pokemon.id,
           name: pokemon.name,
           imageFront: pokemon.sprites.front_default,
           imageBack: pokemon.sprites.back_default,
           type: pokemonType,
-          koreanName: pokemonKorean[parseInt(id) - 1].name,
+          koreanName,
+          strikes: koreanName.split('').map(() => 0)
         //   imageFront: pokemon.sprites.front_shiny
           // back_default:"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/back/132.png"
           // back_female:null
@@ -139,7 +131,13 @@ export default function PokeFight() {
           // front_shiny_female:null
         }
         setPokemon(transformedPokemon)
-      }, [pokemonId])
+        await Audio.setAudioModeAsync({ playsInSilentModeIOS: true });
+        const { sound } = await Audio.Sound.createAsync(
+          { uri: `https://pokemoncries.com/cries-old/${id}.mp3` },
+          {shouldPlay: true}
+        );
+        setSound(sound)
+      }
 
       const playSound = () => {
         setShowSoundEffect(true)
@@ -226,6 +224,11 @@ export default function PokeFight() {
           if(char === answerChar) {
             if(index === answerIndex) {
               newGuessResult.guessed.push('strike')
+              setPokemon(prev => {
+                let newStrikesPokemon = {...prev}
+                newStrikesPokemon.strikes![answerIndex] = 1
+                return newStrikesPokemon
+              })
             } else {
               newGuessResult.guessed.push(index < answerIndex ? 'right' : 'left')
             }
@@ -257,7 +260,7 @@ export default function PokeFight() {
                             <HStack>
                                 <Box flex={1}></Box>
                                 <Text fontFamily="PokeGold" fontSize={35} flex={2}>
-                                    {pokemon!.koreanName}
+                                    {pokemon!.strikes.map((strike, index) => strike ? pokemon.koreanName[index] : '?')}
                                 </Text>
                             </HStack>
                             <Box bg={gameBoxColor} borderLeftWidth='8' borderBottomWidth='3' p={2} pb={5} borderBottomLeftRadius='20'>
@@ -322,7 +325,7 @@ export default function PokeFight() {
                     </VStack>
                     }
                     <Center w='full'>
-                        <Input ref={guessRef} fontFamily='PokeGold' fontSize={20} borderWidth={0} onChangeText={setGuess} autoCorrect={false} onSubmitEditing={() =>{onGuess()}}>{guess}</Input>
+                        <Input ref={guessRef} fontFamily='PokeGold' fontSize={25} borderWidth={0} onChangeText={setGuess} autoCorrect={false} onSubmitEditing={() =>{onGuess()}}>{guess}</Input>
                     </Center>
                 </Box>
             </KeyboardAwareScrollView>
