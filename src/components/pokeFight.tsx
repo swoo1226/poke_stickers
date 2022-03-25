@@ -1,10 +1,10 @@
-import {useState, useEffect, useCallback} from 'react'
-import { StyleSheet, Image, Dimensions, Animated, Easing } from 'react-native';
+import {useState, useEffect, useCallback, useRef} from 'react'
+import { StyleSheet, Image, Dimensions } from 'react-native';
 import pokemonKorean from '../../assets/pokemon/pokemon-korean.json'
 import { useDebounce } from 'use-debounce';
 import {Audio} from 'expo-av'
-import { FontAwesome} from '@expo/vector-icons'
-import { Center, HStack, useColorModeValue, Box, Text, ScrollView, Pressable, Input, VStack, View, useColorMode } from 'native-base';
+import { FontAwesome } from '@expo/vector-icons'
+import { Center, HStack, useColorModeValue, Box, Text, ScrollView, Pressable, Input, VStack, View, PresenceTransition, Icon } from 'native-base';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view'
 import shortid from 'shortid';
 import { useFonts } from 'expo-font'
@@ -79,7 +79,7 @@ const PokemonTypeColor: PokemonColorType = {
 export default function PokeFight() {
     const [pokemon, setPokemon] = useState<Pokemon|null>()
     const [sound, setSound] = useState<any>()
-    const [pokemonId, setPokemonId] = useState<string>('6')
+    const [pokemonId, setPokemonId] = useState<string>('3')
     const [debouncedIdValue] = useDebounce(pokemonId, 700)
     const charBackgroundColor = useColorModeValue('muted.50', 'warmGray.200')
     const gameBoxColor = useColorModeValue('muted.50', 'indigo.400')
@@ -88,15 +88,9 @@ export default function PokeFight() {
     const [loaded, error] = useFonts({
         PokeGold: require('../../assets/fonts/gsc.ttf')
       })
-    let opacity = new Animated.Value(0);
-    const animate = easing => {
-        opacity.setValue(0);
-        Animated.timing(opacity, {
-          toValue: 1,
-          duration: 1200,
-          easing,
-        }).start();
-      };
+    const guessRef = useRef(null)
+    const [showGuessResult, setShowGuessResult] = useState<boolean>(false)
+    const [showSoundEffect, setShowSoundEffect] = useState<boolean>(false)
     useEffect(() => {
         return sound
           ? () => {
@@ -122,7 +116,7 @@ export default function PokeFight() {
         await Audio.setAudioModeAsync({ playsInSilentModeIOS: true });
         const { sound } = await Audio.Sound.createAsync(
           { uri: `https://pokemoncries.com/cries-old/${id}.mp3` },
-          // {shouldPlay: true}
+        //   {shouldPlay: true}
         );
         setSound(sound)
         const pokemon = await data.json()
@@ -130,11 +124,11 @@ export default function PokeFight() {
         const transformedPokemon: Pokemon = {
           id: pokemon.id,
           name: pokemon.name,
-        //   imageFront: pokemon.sprites.front_default,
+          imageFront: pokemon.sprites.front_default,
           imageBack: pokemon.sprites.back_default,
           type: pokemonType,
           koreanName: pokemonKorean[parseInt(id) - 1].name,
-          imageFront: pokemon.sprites.front_shiny
+        //   imageFront: pokemon.sprites.front_shiny
           // back_default:"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/back/132.png"
           // back_female:null
           // back_shiny:"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/back/shiny/132.png"
@@ -148,28 +142,25 @@ export default function PokeFight() {
       }, [pokemonId])
 
       const playSound = () => {
+        setShowSoundEffect(true)
         sound.replayAsync()
+        setTimeout(() => setShowSoundEffect(false), 1000)
       }
-
-    const nameSplitter = (name: string) => (
-      name.split('').map((char: string) => <Center key={shortid.generate()} h="50" w="50" rounded="md" shadow={2} bg={charBackgroundColor}><Text _dark={{color: 'coolGray.800'}}>?</Text></Center>)
-    )
-      const guessCheckedColors = (guessed: Guess[]) => {
+    const checkColors: any = {
+        'strike': 'green.300',
+        'left': 'yellow.300',
+        'right': 'yellow.300',
+        'strike,left': 'lime.200',
+        'strike,right': 'lime.200',
+        'left,right': 'yellow.200',
+        'left,strike': 'lime.200'
+    }
+      const guessCheckedColors = useCallback((guessed: Guess[]) => {
         const guess = guessed.join(',')
-        console.log('guess on check colors ', guess)
-        const checkColors = {
-          'strike': 'green.300',
-          'left': 'yellow.300',
-          'right': 'yellow.300',
-          'strike,left': 'lime.200',
-          'strike,right': 'lime.200',
-          'left,right': 'yellow.200',
-          'left,strike': 'lime.200'
-        }
         return checkColors[guess]??'red.400'
-      }
+      }, [])
     const expectationJoiner = (expectation: Expectation[]) => (
-      expectation.map((guessed) => <Center bg={guessCheckedColors(guessed.guessed)} key={shortid.generate()} h="50" w="50" rounded="md" shadow={2}>{guessed.char}</Center>)
+      expectation.map((guessed) => <Center bg={guessCheckedColors(guessed.guessed)} key={shortid.generate()} h={35} w={35} rounded="md" shadow={2}><Text fontSize={20} fontFamily='PokeGold'>{guessed.char}</Text></Center>)
       )
     const guessedViews = (expectations: Expectation[][]) => {
       return (
@@ -189,7 +180,11 @@ export default function PokeFight() {
         </ScrollView>
       )
     }
+    const onInputGuess = () => {
+        guessRef.current?.focus()
+    }
     const onGuess = useCallback(() => {
+        console.log(pokemon, guess)
       const koreanName = pokemon?.koreanName
       /**
        * 1. 도감에 존재하는 guess인지?
@@ -240,32 +235,18 @@ export default function PokeFight() {
         orgExpectations.push(guessResults)
         return orgExpectations
       })
-      //guessResults의 길이에 따라서 strike, ball 결정될 듯
-      //2-1
-      // guessChars.map((char: string, index: number) => {
-      //   const answer = koreanName![index]
-      //   let guessResult: Expectation = {char, guessed: []}
-      //   if(answer === char) {
-      //     //strike
-      //     guessResult.guessed.push('strike')
-      //   } else {
-      //     if (koreanName!.includes(char)) {
-      //       //ball
-      //       if(koreanName!.indexOf(char) > index) {
-      //       //right ball
-      //       } else { 
-      //       //left ball
-      //       }
-      //     } else {
-      //       //out
-      //     }
-      //   } 
-      // })
+      setShowGuessResult(true)
+      setTimeout(() => {setShowGuessResult(false)}, 1500)
     },[guess])
+    
+    useEffect(() => {
+        console.log('guess', expectations)
+    }, [expectations])
+
     if(loaded) {
         return (
         <View h='full'>
-            <KeyboardAwareScrollView style={{zIndex: 3}}>
+            <KeyboardAwareScrollView style={{zIndex: 3}} extraScrollHeight={30}>
                 <Box justifyContent='space-around' h='full' position='relative'>
                     {pokemon && 
                     <VStack>
@@ -286,21 +267,70 @@ export default function PokeFight() {
                                 </HStack>
                             </Box>
                         </VStack>
-                        <Center  w='full'>
-                            <Image source={{uri: pokemon.imageFront}} style={{width: win.width/1.7, height: win.width/1.7, shadowColor: '#000', shadowOffset: {width: 8, height: 3}, shadowOpacity: 0.3, shadowRadius: 5}} />
-                        </Center>
+                        <HStack  w='full'>
+                            <Box flex={1}>
+                                <PresenceTransition 
+                                    visible={showGuessResult} 
+                                    initial={{
+                                        opacity: 0,
+                                        scale: 0
+                                    }} 
+                                    animate={{
+                                        opacity: 1,
+                                        scale: 1,
+                                        transition: {
+                                            duration: 250
+                                        }
+                                    }}>
+                                        {expectations.length > 0 &&
+                                        <HStack 
+                                            w="full"
+                                            py={5}
+                                            space={2}
+                                            flex={1}
+                                        >
+                                            {expectationJoiner(expectations[expectations.length - 1])}
+                                        </HStack>
+                                        }
+                                </PresenceTransition>
+                                <PresenceTransition 
+                                    visible={showSoundEffect} 
+                                    initial={{
+                                        opacity: 0,
+                                        scale: 0,
+                                        translateX: 100
+                                    }} 
+                                    animate={{
+                                        opacity: 1,
+                                        scale: 1,
+                                        translateX: 0,
+                                        transition: {
+                                            duration: 250,
+                                        }
+
+                                    }}>
+                                    <Icon size={20} as={<FontAwesome name={'music'} />}/>
+                                </PresenceTransition>
+                            </Box>
+                            <Box flex={2}>
+                                <Image source={{uri: pokemon.imageFront}} style={{width: win.width/1.7, height: win.width/1.7, shadowColor: '#000', shadowOffset: {width: 8, height: 3}, shadowOpacity: 0.3, shadowRadius: 5}} />
+                            </Box>
+                        </HStack>
                     </VStack>
                     }
+                    <Center w='full'>
+                        <Input ref={guessRef} fontFamily='PokeGold' fontSize={20} borderWidth={0} onChangeText={setGuess} autoCorrect={false} onSubmitEditing={() =>{onGuess()}}>{guess}</Input>
+                    </Center>
                 </Box>
             </KeyboardAwareScrollView>
             <Box zIndex={5} borderStyle='solid' borderWidth='2' w='full' borderRadius='5' p={1}  mt={5} style={{position: 'absolute', bottom: '10%', left: 0, right: 0}} bg={gameBoxColor}>
                 <VStack borderStyle='solid' borderWidth='4' borderRadius='5' p={3} pl={8}>
                     <HStack w='full' alignItems='center'>
-                        <Input p={0} flex={1}><Text fontSize={35} fontFamily="PokeGold" onPress={()=>{console.log('Fight')}}>싸우다</Text></Input>
+                        <Box flex={1} ><Text fontSize={35} fontFamily="PokeGold" onPress={onInputGuess}>싸우다</Text></Box>
                         <Box flex={1}><Text fontSize={35} fontFamily="PokeGold">가방</Text></Box>
                     </HStack>
                     <HStack w='full' alignItems='center'>
-                        <Box flex={1}><Text fontSize={35} fontFamily="PokeGold">포켓몬</Text></Box>
+                        <Box flex={1}><Text fontSize={35} fontFamily="PokeGold" onPress={playSound}>포켓몬</Text></Box>
                         <Box flex={1}><Text fontSize={35} fontFamily="PokeGold">도망치다</Text></Box>
                     </HStack>
                 </VStack>
