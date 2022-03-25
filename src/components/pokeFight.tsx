@@ -79,7 +79,7 @@ const PokemonTypeColor: PokemonColorType = {
 export default function PokeFight() {
     const [pokemon, setPokemon] = useState<Pokemon|null>()
     const [sound, setSound] = useState<any>()
-    const [pokemonId, setPokemonId] = useState<string>('3')
+    const [pokemonId, setPokemonId] = useState<string>('5')
     const [debouncedIdValue] = useDebounce(pokemonId, 700)
     const charBackgroundColor = useColorModeValue('muted.50', 'warmGray.200')
     const gameBoxColor = useColorModeValue('muted.50', 'indigo.400')
@@ -159,9 +159,11 @@ export default function PokeFight() {
         const guess = guessed.join(',')
         return checkColors[guess]??'red.400'
       }, [])
-    const expectationJoiner = (expectation: Expectation[]) => (
+    const expectationJoiner = (expectation: Expectation[]) => { 
+        console.log('joiner props', expectation)
+        return (
       expectation.map((guessed) => <Center bg={guessCheckedColors(guessed.guessed)} key={shortid.generate()} h={35} w={35} rounded="md" shadow={2}><Text fontSize={20} fontFamily='PokeGold'>{guessed.char}</Text></Center>)
-      )
+      )}
     const guessedViews = (expectations: Expectation[][]) => {
       return (
         <ScrollView w='full' h='50%'>
@@ -184,7 +186,6 @@ export default function PokeFight() {
         guessRef.current?.focus()
     }
     const onGuess = useCallback(() => {
-        console.log(pokemon, guess)
       const koreanName = pokemon?.koreanName
       /**
        * 1. 도감에 존재하는 guess인지?
@@ -209,7 +210,9 @@ export default function PokeFight() {
           orgExpectations.push(guessResults)
           return orgExpectations
         })
-        return
+        // 정답!!!
+        // 정답 맞출 때 완료할 것인지?
+        // return
       }
       const guessChars = guess.split('')
       const answerChars = koreanName?.split('')
