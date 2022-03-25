@@ -6,6 +6,7 @@ import NavBar from '../components/navbar'
 import TaskItem from '../components/task-item'
 import shortid from 'shortid'
 import {AntDesign} from '@expo/vector-icons'
+import { storeObjectData, getObjectData } from '../utils/storage'
 export interface TaskItemData {
     id: string;
     subject: string;

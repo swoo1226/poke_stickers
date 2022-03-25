@@ -3,6 +3,7 @@ import { createDrawerNavigator } from '@react-navigation/drawer'
 import MainScreen from './screens/main-screen'
 import AbountScreen from './screens/about-screen'
 import PokeScreen from './screens/poke-screen'
+import WordleScreen from './screens/wordle-screen'
 import Sidebar from './components/sidebar'
 const Drawer = createDrawerNavigator()
 
@@ -20,6 +21,7 @@ const App = () => {
             <Drawer.Screen name='Main' component={MainScreen} />
             <Drawer.Screen name='About' component={AbountScreen} />
             <Drawer.Screen name='Poke' component={PokeScreen} />
+            <Drawer.Screen name='Wordle' component={WordleScreen} />
         </Drawer.Navigator>
     )
 }

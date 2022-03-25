@@ -4,25 +4,25 @@ import {
   useColorModeValue,
   Text,
   Center,
-  VStack,
-  View
+  VStack
 } from 'native-base'
-import PokeFight from '../components/pokeFight'
+import Pokedex from '../components/pokeWordle'
 import Navbar from '../components/navbar'
 
-const PokeScreen = () => {
+const WordleScreen = () => {
   return (
     <Box
+      flex={1}
       _dark={{bg: 'blueGray.900'}} _light={{bg: 'blueGray.50'}}
       w="full"
       px={5}
-      h="full"
+      height='100%'
       pb={10}
     >
       <Navbar />
-      <PokeFight />
+      <Pokedex />
     </Box>
   )
 }
 
-export default PokeScreen
+export default WordleScreen

@@ -28,6 +28,9 @@ const Sidebar = (props: DrawerContentComponentProps) => {
   const handlePressMenuAbout = useCallback(() => {
     navigation.navigate('About')
   }, [navigation])
+  const handlePressMenuWordle = useCallback(() => {
+    navigation.navigate('Wordle')
+  }, [navigation])
   const handlePressMenuPoke = useCallback(() => {
     navigation.navigate('Poke')
   }, [navigation])
@@ -80,9 +83,16 @@ const Sidebar = (props: DrawerContentComponentProps) => {
           About
         </MenuButton>
         <MenuButton
+          active={currentRoute === 'Wordle'}
+          onPress={handlePressMenuWordle}
+          icon="book"
+        >
+          Wordle
+        </MenuButton>
+        <MenuButton
           active={currentRoute === 'Poke'}
           onPress={handlePressMenuPoke}
-          icon="book"
+          icon="meh"
         >
           Poke
         </MenuButton>

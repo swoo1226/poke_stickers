@@ -13,7 +13,7 @@ const NavBar = () => {
         setCurrColorMode(colorMode)
     }, [colorMode])
     return (
-        <HStack w="full" h={40} alignItems="center" alignContent="center" p={4}>
+        <HStack w="full" h={20} alignItems="center" alignContent="center" p={1} pt={10}>
             <IconButton onPress={handlePressMenuButton} borderRadius={100} _icon={{
                 as: Feather,
                 name: 'menu',

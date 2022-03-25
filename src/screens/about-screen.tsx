@@ -31,20 +31,20 @@ const AboutScreen = () => {
         borderTopLeftRadius="20px"
         borderTopRightRadius="20px"
         bg={useColorModeValue('warmGray.50', 'primary.900')}
-        mt="-20px"
+        // mt="-20px"
         pt="30px"
         p={4}
       >
         <VStack flex={1} space={4}>
           <Box alignItems="center">
-            {/* <Image
-              source={require('../assets/takuya.jpg')}
+            <Image
+              source={require('../../assets/profile.png')}
               borderRadius="full"
               resizeMode="cover"
-              w={120}
-              h={120}
+              w={130}
+              h={130}
               alt="author"
-            /> */}
+            />
           </Box>
           <LinkButton
             colorScheme="red"
