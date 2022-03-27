@@ -85,6 +85,7 @@ export default function PokeFight() {
     const gameBoxColor = useColorModeValue('muted.50', 'indigo.400')
     const [guess, setGuess] = useState<string>('')
     const [expectations, setExpectations] = useState<Expectation[][]>([])
+    const [accuracy, setAccuracy] = useState<number>(100)
     const [loaded, error] = useFonts({
         PokeGold: require('../../assets/fonts/gsc.ttf')
       })
@@ -246,7 +247,14 @@ export default function PokeFight() {
     },[guess])
     
     useEffect(() => {
-        console.log('guess', expectations)
+        if(pokemon) {
+            const pokemonNameLength = pokemon!.koreanName.length
+            const strikeCount = pokemon.strikes.filter((strike) => strike === 1).length
+            console.log('strikeCount', strikeCount)
+            const newAccuracy = pokemonNameLength - strikeCount
+            
+            setAccuracy(newAccuracy / pokemonNameLength * 100)
+        }
     }, [expectations])
 
     if(loaded) {
@@ -256,7 +264,7 @@ export default function PokeFight() {
                 <Box justifyContent='space-around' h='full' position='relative'>
                     {pokemon && 
                     <VStack>
-                        <VStack w='80%'>
+                        <VStack w='80%' mt={5}>
                             <HStack>
                                 <Box flex={1}></Box>
                                 <Text fontFamily="PokeGold" fontSize={35} flex={2}>
@@ -268,7 +276,9 @@ export default function PokeFight() {
                                     <Center bg="black" pl={1} pr={1} flex={1}>
                                         <Text color='yellow.400'  fontWeight='extrabold' fontSize={18}>HP : </Text>
                                     </Center>
-                                    <Box flex={5} bg='green.500' h='40%' mt='2.5'>
+                                    <Box flex={5} justifyContent='flex-start'>
+                                        <Box bg='green.500' w={`${accuracy}%`} h='2.5' mt='2.5'>
+                                        </Box>
                                     </Box>
                                 </HStack>
                             </Box>
