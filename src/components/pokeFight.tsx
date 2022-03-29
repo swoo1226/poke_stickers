@@ -8,6 +8,7 @@ import { Center, HStack, useColorModeValue, Box, Text, ScrollView, Pressable, In
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view'
 import shortid from 'shortid';
 import { useFonts } from 'expo-font'
+import { setAutoServerRegistrationEnabledAsync } from 'expo-notifications';
 
 const win = Dimensions.get('window')
 type ImageUri = {
@@ -85,13 +86,14 @@ export default function PokeFight() {
     const gameBoxColor = useColorModeValue('muted.50', 'indigo.400')
     const [guess, setGuess] = useState<string>('')
     const [expectations, setExpectations] = useState<Expectation[][]>([])
-    const [accuracy, setAccuracy] = useState<number>(100)
+    const [accuracy, setAccuracy] = useState<[number, string]>([100, 'green.500'])
     const [loaded, error] = useFonts({
         PokeGold: require('../../assets/fonts/gsc.ttf')
       })
     const guessRef = useRef(null)
     const [showGuessResult, setShowGuessResult] = useState<boolean>(false)
     const [showSoundEffect, setShowSoundEffect] = useState<boolean>(false)
+    const [reveal, setReveal] = useState<boolean>(false)
     useEffect(() => {
         return sound
           ? () => {
@@ -103,11 +105,30 @@ export default function PokeFight() {
         const randomPokemonId = Math.ceil(Math.random() * 151)
         getPokemon(String(randomPokemonId))
         return() => {
-        setPokemon(null)
-        setGuess('')
-        setExpectations([])
+          setPokemon(null)
+          setGuess('')
+          setExpectations([])
+          setAccuracy([100, 'green.500'])
+          setReveal(false)
         }
     }, [])
+
+    useEffect(() => {
+        if(pokemon) {
+            const pokemonNameLength = pokemon!.koreanName.length
+            const strikeCount = pokemon.strikes.filter((strike) => strike === 1).length
+            const newAccuracy = (pokemonNameLength - strikeCount) / pokemonNameLength
+            let hpColor = 'green.500'
+            if(newAccuracy <= 0.5) {
+                hpColor = 'amber.400'
+            }
+            if(newAccuracy <= 0.25) {
+                hpColor = 'red.600'
+            }
+            setAccuracy([newAccuracy * 100, hpColor])
+        }
+    }, [expectations])
+    
     const getPokemon = async (id: string) => {
         const data: Response = await fetch(`https://pokeapi.co/api/v2/pokemon/${id}`)
         const pokemon = await data.json()
@@ -159,10 +180,7 @@ export default function PokeFight() {
         return checkColors[guess]??'red.400'
       }, [])
     const expectationJoiner = (expectation: Expectation[]) => { 
-        console.log('joiner props', expectation)
-        return (
-      expectation.map((guessed) => <Center bg={guessCheckedColors(guessed.guessed)} key={shortid.generate()} h={35} w={35} rounded="md" shadow={2}><Text fontSize={20} fontFamily='PokeGold'>{guessed.char}</Text></Center>)
-      )}
+        return (expectation.map((guessed) => <Center bg={guessCheckedColors(guessed.guessed)} key={shortid.generate()} h={35} w={35} rounded="md" shadow={2}><Text fontSize={20} fontFamily='PokeGold'>{guessed.char}</Text></Center>))}
     const guessedViews = (expectations: Expectation[][]) => {
       return (
         <ScrollView w='full' h='50%'>
@@ -182,6 +200,7 @@ export default function PokeFight() {
       )
     }
     const onInputGuess = () => {
+        setGuess('')
         guessRef.current?.focus()
     }
     const onGuess = useCallback(() => {
@@ -209,6 +228,7 @@ export default function PokeFight() {
           orgExpectations.push(guessResults)
           return orgExpectations
         })
+        setReveal(true)
         // 정답!!!
         // 정답 맞출 때 완료할 것인지?
         // return
@@ -246,16 +266,7 @@ export default function PokeFight() {
       setTimeout(() => {setShowGuessResult(false)}, 1500)
     },[guess])
     
-    useEffect(() => {
-        if(pokemon) {
-            const pokemonNameLength = pokemon!.koreanName.length
-            const strikeCount = pokemon.strikes.filter((strike) => strike === 1).length
-            console.log('strikeCount', strikeCount)
-            const newAccuracy = pokemonNameLength - strikeCount
-            
-            setAccuracy(newAccuracy / pokemonNameLength * 100)
-        }
-    }, [expectations])
+    
 
     if(loaded) {
         return (
@@ -277,7 +288,7 @@ export default function PokeFight() {
                                         <Text color='yellow.400'  fontWeight='extrabold' fontSize={18}>HP : </Text>
                                     </Center>
                                     <Box flex={5} justifyContent='flex-start'>
-                                        <Box bg='green.500' w={`${accuracy}%`} h='2.5' mt='2.5'>
+                                        <Box bg={accuracy[1]} w={`${accuracy[0]}%`} h='2.5' mt='2.5'>
                                         </Box>
                                     </Box>
                                 </HStack>
@@ -323,13 +334,26 @@ export default function PokeFight() {
                                         transition: {
                                             duration: 250,
                                         }
-
                                     }}>
                                     <Icon size={20} as={<FontAwesome name={'music'} />}/>
                                 </PresenceTransition>
                             </Box>
                             <Box flex={2}>
-                                <Image source={{uri: pokemon.imageFront}} style={{width: win.width/1.7, height: win.width/1.7, shadowColor: '#000', shadowOffset: {width: 8, height: 3}, shadowOpacity: 0.3, shadowRadius: 5}} />
+                              <PresenceTransition 
+                                visible={pokemon.imageFront !== null} 
+                                initial={{
+                                  opacity: 0,
+                                  translateX: 100
+                                }} 
+                                animate={{
+                                    opacity: 1,
+                                    translateX: 0,
+                                    transition: {
+                                        duration: 500,
+                                    }
+                                }}>
+                                  <Image blurRadius={accuracy[0]/100 * 2.5} source={{uri: pokemon.imageFront}} style={[{width: win.width/1.7, height: win.width/1.7, shadowColor: '#000', shadowOffset: {width: 8, height: 3}, shadowOpacity: 0.3, shadowRadius: 5}, reveal ? styles.reveal : styles.veil]} />
+                              </PresenceTransition>
                             </Box>
                         </HStack>
                     </VStack>
@@ -339,7 +363,7 @@ export default function PokeFight() {
                     </Center>
                 </Box>
             </KeyboardAwareScrollView>
-            <Box zIndex={5} borderStyle='solid' borderWidth='2' w='full' borderRadius='5' p={1}  mt={5} style={{position: 'absolute', bottom: '10%', left: 0, right: 0}} bg={gameBoxColor}>
+            <Box zIndex={5} borderStyle='solid' borderWidth='2' w='full' borderRadius={reveal ? 0 : 5} p={1}  mt={5} style={{position: 'absolute', bottom: '10%', left: 0, right: 0}} bg={gameBoxColor}>
                 <VStack borderStyle='solid' borderWidth='4' borderRadius='5' p={3} pl={8}>
                     <HStack w='full' alignItems='center'>
                         <Box flex={1} ><Text fontSize={35} fontFamily="PokeGold" onPress={onInputGuess}>싸우다</Text></Box>
@@ -356,3 +380,13 @@ export default function PokeFight() {
     }
     return null
 }
+
+const styles = StyleSheet.create({
+  veil: {
+    tintColor: '#000',
+    opacity: 0.8, 
+  },
+  reveal: {
+    opacity: 1,
+  }
+})
