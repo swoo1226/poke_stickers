@@ -9,6 +9,7 @@ export default class PedoScreen extends React.Component {
     pastStepCount: 0,
     currentStepCount: 0,
   };
+    _subscription: Pedometer.Subscription | null | undefined;
 
   componentDidMount() {
     this._subscribe();

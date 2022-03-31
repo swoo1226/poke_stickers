@@ -4,6 +4,7 @@ import MainScreen from './screens/main-screen'
 import AbountScreen from './screens/about-screen'
 import PokeScreen from './screens/poke-screen'
 import WordleScreen from './screens/wordle-screen'
+import PedoScreen from './screens/pedo-screen'
 import Sidebar from './components/sidebar'
 const Drawer = createDrawerNavigator()
 
@@ -22,6 +23,7 @@ const App = () => {
             <Drawer.Screen name='About' component={AbountScreen} />
             <Drawer.Screen name='Poke' component={PokeScreen} />
             <Drawer.Screen name='Wordle' component={WordleScreen} />
+            <Drawer.Screen name='Pedo' component={PedoScreen} />
         </Drawer.Navigator>
     )
 }
