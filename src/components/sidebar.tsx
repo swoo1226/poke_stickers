@@ -12,7 +12,7 @@ import {
 import { DrawerContentComponentProps } from '@react-navigation/drawer'
 // import AnimatedColorBox from './animated-color-box'
 import ThemeToggle from './theme-toggle'
-import { Feather } from '@expo/vector-icons'
+import { Feather, Foundation } from '@expo/vector-icons'
 import MenuButton from './menu-button'
 
 const Sidebar = (props: DrawerContentComponentProps) => {
@@ -33,6 +33,9 @@ const Sidebar = (props: DrawerContentComponentProps) => {
   }, [navigation])
   const handlePressMenuPoke = useCallback(() => {
     navigation.navigate('Poke')
+  }, [navigation])
+  const handlePressMenuPedo = useCallback(() => {
+    navigation.navigate('Pedo')
   }, [navigation])
 
   return (
@@ -93,6 +96,14 @@ const Sidebar = (props: DrawerContentComponentProps) => {
           active={currentRoute === 'Poke'}
           onPress={handlePressMenuPoke}
           icon="meh"
+        >
+          Poke
+        </MenuButton>
+        <MenuButton
+          active={currentRoute === 'Pedo'}
+          onPress={handlePressMenuPedo}
+          icon="foot"
+          iconGroup='Foundation'
         >
           Poke
         </MenuButton>
