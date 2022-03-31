@@ -8,13 +8,8 @@ import { Center, HStack, useColorModeValue, Box, Text, ScrollView, Pressable, In
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view'
 import shortid from 'shortid';
 import { useFonts } from 'expo-font'
-import { setAutoServerRegistrationEnabledAsync } from 'expo-notifications';
 
 const win = Dimensions.get('window')
-type ImageUri = {
-    localUri: string;
-    remoteUri?: string | null;
-  } | null
 
 type PokemonTypeColors = {
   normal: string
@@ -81,8 +76,6 @@ const PokemonTypeColor: PokemonColorType = {
 export default function PokeFight() {
     const [pokemon, setPokemon] = useState<Pokemon|null>()
     const [sound, setSound] = useState<any>()
-    // const [pokemonId, setPokemonId] = useState<string>('6')
-    const charBackgroundColor = useColorModeValue('muted.50', 'warmGray.200')
     const gameBoxColor = useColorModeValue('muted.50', 'indigo.400')
     const [guess, setGuess] = useState<string>('')
     const [expectations, setExpectations] = useState<Expectation[][]>([])
@@ -94,6 +87,7 @@ export default function PokeFight() {
     const [showGuessResult, setShowGuessResult] = useState<boolean>(false)
     const [showSoundEffect, setShowSoundEffect] = useState<boolean>(false)
     const [reveal, setReveal] = useState<boolean>(false)
+
     useEffect(() => {
         return sound
           ? () => {
@@ -152,6 +146,7 @@ export default function PokeFight() {
           // front_shiny:"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/shiny/132.png"
           // front_shiny_female:null
         }
+        console.log('포켓몬', transformedPokemon)
         setPokemon(transformedPokemon)
         await Audio.setAudioModeAsync({ playsInSilentModeIOS: true });
         const { sound } = await Audio.Sound.createAsync(
@@ -266,7 +261,15 @@ export default function PokeFight() {
       setTimeout(() => {setShowGuessResult(false)}, 1500)
     },[guess])
     
-    
+    const resetPokemon = () => {
+      setPokemon(null)
+      setGuess('')
+      setExpectations([])
+      setAccuracy([100, 'green.500'])
+      setReveal(false)
+      const randomPokemonId = Math.ceil(Math.random() * 151)
+      getPokemon(String(randomPokemonId))
+    }
 
     if(loaded) {
         return (
@@ -352,14 +355,14 @@ export default function PokeFight() {
                                         duration: 500,
                                     }
                                 }}>
-                                  <Image blurRadius={accuracy[0]/100 * 2.5} source={{uri: pokemon.imageFront}} style={[{width: win.width/1.7, height: win.width/1.7, shadowColor: '#000', shadowOffset: {width: 8, height: 3}, shadowOpacity: 0.3, shadowRadius: 5}, reveal ? styles.reveal : styles.veil]} />
+                                  <Image blurRadius={accuracy[0]/100 * 4} source={{uri: pokemon.imageFront}} style={[{width: win.width/1.7, height: win.width/1.7, shadowColor: '#000', shadowOffset: {width: 8, height: 3}, shadowOpacity: 0.3, shadowRadius: 5}, reveal ? styles.reveal : styles.veil]} />
                               </PresenceTransition>
                             </Box>
                         </HStack>
                     </VStack>
                     }
                     <Center w='full'>
-                        <Input ref={guessRef} fontFamily='PokeGold' fontSize={25} borderWidth={0} onChangeText={setGuess} autoCorrect={false} onSubmitEditing={() =>{onGuess()}}>{guess}</Input>
+                        <Input ref={guessRef} fontFamily='PokeGold' fontSize={25} borderWidth={0} onChangeText={setGuess} autoCorrect={false} onSubmitEditing={() =>{onGuess()}} onFocus={() => {setGuess('')}}>{guess}</Input>
                     </Center>
                 </Box>
             </KeyboardAwareScrollView>
@@ -371,7 +374,7 @@ export default function PokeFight() {
                     </HStack>
                     <HStack w='full' alignItems='center'>
                         <Box flex={1}><Text fontSize={35} fontFamily="PokeGold" onPress={playSound}>포켓몬</Text></Box>
-                        <Box flex={1}><Text fontSize={35} fontFamily="PokeGold">도망치다</Text></Box>
+                        <Box flex={1}><Text fontSize={35} fontFamily="PokeGold" onPress={resetPokemon}>도망치다</Text></Box>
                     </HStack>
                 </VStack>
             </Box>
