@@ -744,12 +744,12 @@
     {
        "id":29,
        "num":"029",
-       "name":"니드런♀",
+       "name":"니드런",
        "img":"http://www.serebii.net/pokemongo/pokemon/029.png",
        "type":"독",
        "height":"0.41 m",
        "weight":"7.0 kg",
-       "candy":"25 니드런♀ 캔디",
+       "candy":"25 니드런 캔디",
        "egg":"5 km",
        "multipliers":[
           1.63,
@@ -791,7 +791,7 @@
        "prev_evolution":[
           {
              "num":"029",
-             "name":"니드런♀"
+             "name":"니드런"
           }
        ],
        "next_evolution":[
@@ -821,7 +821,7 @@
        "prev_evolution":[
           {
              "num":"029",
-             "name":"니드런♀"
+             "name":"니드런"
           },
           {
              "num":"030",
@@ -832,12 +832,12 @@
     {
        "id":32,
        "num":"032",
-       "name":"니드런♂",
+       "name":"니드런",
        "img":"http://www.serebii.net/pokemongo/pokemon/032.png",
        "type":"독",
        "height":"0.51 m",
        "weight":"9.0 kg",
-       "candy":"25 니드런♂ 캔디",
+       "candy":"25 니드런 캔디",
        "egg":"5 km",
        "multipliers":[
           1.64,
@@ -876,7 +876,7 @@
        "prev_evolution":[
           {
              "num":"032",
-             "name":"니드런♂"
+             "name":"니드런"
           }
        ],
        "next_evolution":[
@@ -906,7 +906,7 @@
        "prev_evolution":[
           {
              "num":"032",
-             "name":"니드런♂"
+             "name":"니드런"
           },
           {
              "num":"033",
