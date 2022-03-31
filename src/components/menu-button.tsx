@@ -1,14 +1,19 @@
 import React from 'react'
 import { Button, Icon, IButtonProps } from 'native-base'
-import { Feather } from '@expo/vector-icons'
+import { Feather, Foundation } from '@expo/vector-icons'
 
 interface Props extends IButtonProps {
   active: boolean
   icon: string
   children: React.ReactNode
+  iconGroup?: string
 }
 
-const MenuButton = ({ active, icon, children, ...props }: Props) => {
+const ICON_GROUPS = {
+  'Feather': Feather,
+  'Foundation': Foundation
+}
+const MenuButton = ({ active, icon, children, iconGroup='Feather', ...props }: Props) => {
   return (
     <Button
       size="lg"
@@ -33,7 +38,7 @@ const MenuButton = ({ active, icon, children, ...props }: Props) => {
       bg={active ? undefined : 'transparent'}
       variant="solid"
       justifyContent="flex-start"
-      leftIcon={<Icon as={Feather} name={icon} size="sm" opacity={0.5} />}
+      leftIcon={<Icon as={ICON_GROUPS[iconGroup]} name={icon} size="sm" opacity={0.5} />}
       {...props}
     >
       {children}
