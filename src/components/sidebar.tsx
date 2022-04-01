@@ -7,10 +7,9 @@ import {
   Heading,
   IconButton,
   useColorModeValue,
-  Box
+  Box,
 } from 'native-base'
 import { DrawerContentComponentProps } from '@react-navigation/drawer'
-// import AnimatedColorBox from './animated-color-box'
 import ThemeToggle from './theme-toggle'
 import { Feather, Foundation } from '@expo/vector-icons'
 import MenuButton from './menu-button'
@@ -28,9 +27,9 @@ const Sidebar = (props: DrawerContentComponentProps) => {
   const handlePressMenuAbout = useCallback(() => {
     navigation.navigate('About')
   }, [navigation])
-  const handlePressMenuWordle = useCallback(() => {
-    navigation.navigate('Wordle')
-  }, [navigation])
+  // const handlePressMenuWordle = useCallback(() => {
+  //   navigation.navigate('Wordle')
+  // }, [navigation])
   const handlePressMenuPoke = useCallback(() => {
     navigation.navigate('Poke')
   }, [navigation])
@@ -55,19 +54,19 @@ const Sidebar = (props: DrawerContentComponentProps) => {
             _icon={{
               as: Feather,
               name: 'chevron-left',
-              size: 6,
+              size: 5,
               color: useColorModeValue('blue.800', 'darkBlue.700')
             }}
           />
         </HStack>
-        {/* <Avatar
-          source={require('../assets/profile-image.png')}
+        <Avatar
+          source={require('../../assets/profile.png')}
           size="xl"
           borderRadius={100}
           mb={6}
-          borderColor="secondary.500"
+          borderColor="primary.500"
           borderWidth={3}
-        /> */}
+        />
         <Heading mb={4} size="xl">
           Sangwoo Kim
         </Heading>
@@ -85,13 +84,13 @@ const Sidebar = (props: DrawerContentComponentProps) => {
         >
           About
         </MenuButton>
-        <MenuButton
+        {/* <MenuButton
           active={currentRoute === 'Wordle'}
           onPress={handlePressMenuWordle}
           icon="book"
         >
           Wordle
-        </MenuButton>
+        </MenuButton> */}
         <MenuButton
           active={currentRoute === 'Poke'}
           onPress={handlePressMenuPoke}
@@ -105,7 +104,7 @@ const Sidebar = (props: DrawerContentComponentProps) => {
           icon="foot"
           iconGroup='Foundation'
         >
-          Poke
+          Pedometer
         </MenuButton>
       </VStack>
       <Center>
