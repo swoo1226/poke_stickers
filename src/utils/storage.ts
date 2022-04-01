@@ -36,8 +36,9 @@ export const getStringData = async (storageKey: string) => {
 export const getObjectData = async (storageKey: string) => {
     try {
       const jsonValue = await AsyncStorage.getItem(storageKey)
-      return jsonValue != null ? JSON.parse(jsonValue) : null;
+      return jsonValue !== null ? jsonValue : null;
     } catch(e) {
+      console.error(e, 'Object does not exist')
       // error reading value
     }
   }
@@ -59,4 +60,42 @@ export const clearData = async () => {
   } catch(e) {
     console.error(e)
   }
+}
+
+export type PokemonTypeColors = {
+  normal: string
+  poison: string
+  psychic: string
+  grass: string
+  ground: string
+  ice: string
+  fire: string
+  rock: string
+  dragon: string
+  water: string
+  bug: string
+  dark: string
+  fighting: string
+  ghost: string
+  steel: string
+  flying: string
+  electric: string
+  fairy: string
+}
+
+export type PokemonColorType = {
+  [key in keyof PokemonTypeColors]: string;
+};
+
+export interface Pokemon {
+  id: number
+  name: string
+  imageFront: string
+  imageBack: string
+  type: keyof PokemonTypeColors
+  koreanName: string
+  strikes: number[]
+}
+export interface PokeDex {
+  [key: number]: Partial<Pokemon>[]
 }

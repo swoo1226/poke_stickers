@@ -36,6 +36,9 @@ const Sidebar = (props: DrawerContentComponentProps) => {
   const handlePressMenuPedo = useCallback(() => {
     navigation.navigate('Pedo')
   }, [navigation])
+  const handlePressMenuDex = useCallback(() => {
+    navigation.navigate('Dex')
+  }, [navigation])
 
   return (
     <Box
@@ -91,6 +94,13 @@ const Sidebar = (props: DrawerContentComponentProps) => {
         >
           Wordle
         </MenuButton> */}
+        <MenuButton
+          active={currentRoute === 'Dex'}
+          onPress={handlePressMenuDex}
+          icon="book"
+        >
+          Dex
+        </MenuButton>
         <MenuButton
           active={currentRoute === 'Poke'}
           onPress={handlePressMenuPoke}

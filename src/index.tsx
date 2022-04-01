@@ -6,6 +6,7 @@ import PokeScreen from './screens/poke-screen'
 import WordleScreen from './screens/wordle-screen'
 import PedoScreen from './screens/pedo-screen'
 import Sidebar from './components/sidebar'
+import DexScreen from './screens/dex-screen'
 const Drawer = createDrawerNavigator()
 
 const App = () => {
@@ -22,7 +23,8 @@ const App = () => {
             <Drawer.Screen name='Main' component={MainScreen} />
             <Drawer.Screen name='About' component={AbountScreen} />
             <Drawer.Screen name='Poke' component={PokeScreen} />
-            <Drawer.Screen name='Wordle' component={WordleScreen} />
+            <Drawer.Screen name='Dex' component={DexScreen} />
+            {/* <Drawer.Screen name='Wordle' component={WordleScreen} /> */}
             <Drawer.Screen name='Pedo' component={PedoScreen} />
         </Drawer.Navigator>
     )
