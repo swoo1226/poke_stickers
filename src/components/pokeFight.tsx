@@ -1,14 +1,15 @@
 import {useState, useEffect, useCallback, useRef} from 'react'
 import { StyleSheet, Image, Dimensions } from 'react-native';
 import pokemonKorean from '../../assets/pokemon/pokemon-korean.json'
-import { useDebounce } from 'use-debounce';
 import {Audio} from 'expo-av'
 import { FontAwesome } from '@expo/vector-icons'
-import { Center, HStack, useColorModeValue, Box, Text, ScrollView, Pressable, Input, VStack, View, PresenceTransition, Icon } from 'native-base';
+import { Center, HStack, useColorModeValue, Box, Text, ScrollView, Input, VStack, View, PresenceTransition, Icon } from 'native-base';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view'
 import shortid from 'shortid';
 import { useFonts } from 'expo-font'
-
+import usePrevious from '../utils/usePrevious';
+import { storeObjectData, getObjectData } from '../utils/storage'
+import ConfettiCannon from 'react-native-confetti-cannon'
 const win = Dimensions.get('window')
 
 type PokemonTypeColors = {
@@ -87,7 +88,8 @@ export default function PokeFight() {
     const [showGuessResult, setShowGuessResult] = useState<boolean>(false)
     const [showSoundEffect, setShowSoundEffect] = useState<boolean>(false)
     const [reveal, setReveal] = useState<boolean>(false)
-
+    const [accuracyDiff, setAccuracyDiff] = useState<boolean>(false)
+    const [showConfetti, setShowConfetti] = useState<boolean>(false)
     useEffect(() => {
         return sound
           ? () => {
@@ -99,14 +101,10 @@ export default function PokeFight() {
         const randomPokemonId = Math.ceil(Math.random() * 151)
         getPokemon(String(randomPokemonId))
         return() => {
-          setPokemon(null)
-          setGuess('')
-          setExpectations([])
-          setAccuracy([100, 'green.500'])
-          setReveal(false)
+          resetPokemon()
         }
     }, [])
-
+    
     useEffect(() => {
         if(pokemon) {
             const pokemonNameLength = pokemon!.koreanName.length
@@ -123,6 +121,18 @@ export default function PokeFight() {
         }
     }, [expectations])
     
+    const prevAccuracy = usePrevious(accuracy)
+    useEffect(() => {
+      if(prevAccuracy && prevAccuracy![0] !== accuracy[0]) {
+        //정답률 변경에 따른 애니메이션 효과
+        // setAccuracyDiff(true)
+        // setTimeout(() => {setAccuracyDiff(true)}, 500)
+      }
+      if(accuracy[0] === 0) {
+        setShowConfetti(true)
+      }
+    }, [accuracy])
+
     const getPokemon = async (id: string) => {
         const data: Response = await fetch(`https://pokeapi.co/api/v2/pokemon/${id}`)
         const pokemon = await data.json()
@@ -146,7 +156,6 @@ export default function PokeFight() {
           // front_shiny:"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/shiny/132.png"
           // front_shiny_female:null
         }
-        console.log('포켓몬', transformedPokemon)
         setPokemon(transformedPokemon)
         await Audio.setAudioModeAsync({ playsInSilentModeIOS: true });
         const { sound } = await Audio.Sound.createAsync(
@@ -156,11 +165,11 @@ export default function PokeFight() {
         setSound(sound)
       }
 
-      const playSound = () => {
-        setShowSoundEffect(true)
-        sound.replayAsync()
-        setTimeout(() => setShowSoundEffect(false), 1000)
-      }
+    const playSound = () => {
+      setShowSoundEffect(true)
+      sound.replayAsync()
+      setTimeout(() => setShowSoundEffect(false), 1000)
+    }
     const checkColors: any = {
         'strike': 'green.300',
         'left': 'yellow.300',
@@ -170,30 +179,30 @@ export default function PokeFight() {
         'left,right': 'yellow.200',
         'left,strike': 'lime.200'
     }
-      const guessCheckedColors = useCallback((guessed: Guess[]) => {
-        const guess = guessed.join(',')
-        return checkColors[guess]??'red.400'
-      }, [])
+    const guessCheckedColors = useCallback((guessed: Guess[]) => {
+      const guess = guessed.join(',')
+      return checkColors[guess]??'red.400'
+    }, [])
     const expectationJoiner = (expectation: Expectation[]) => { 
         return (expectation.map((guessed) => <Center bg={guessCheckedColors(guessed.guessed)} key={shortid.generate()} h={35} w={35} rounded="md" shadow={2}><Text fontSize={20} fontFamily='PokeGold'>{guessed.char}</Text></Center>))}
-    const guessedViews = (expectations: Expectation[][]) => {
-      return (
-        <ScrollView w='full' h='50%'>
-          {expectations.map((expectation, index) => 
-            <HStack 
-              alignItems="center"
-              w="full"
-              justifyContent="center"
-              space={2}
-              py={5}
-              key={`expectation${index}`}
-            >
-            {expectationJoiner(expectation)}
-            </HStack>
-          )}
-        </ScrollView>
-      )
-    }
+    // const guessedViews = (expectations: Expectation[][]) => {
+    //   return (
+    //     <ScrollView w='full' h='50%'>
+    //       {expectations.map((expectation, index) => 
+    //         <HStack 
+    //           alignItems="center"
+    //           w="full"
+    //           justifyContent="center"
+    //           space={2}
+    //           py={5}
+    //           key={`expectation${index}`}
+    //         >
+    //         {expectationJoiner(expectation)}
+    //         </HStack>
+    //       )}
+    //     </ScrollView>
+    //   )
+    // }
     const onInputGuess = () => {
         setGuess('')
         guessRef.current?.focus()
@@ -265,6 +274,7 @@ export default function PokeFight() {
       setPokemon(null)
       setGuess('')
       setExpectations([])
+      setShowConfetti(false)
       setAccuracy([100, 'green.500'])
       setReveal(false)
       const randomPokemonId = Math.ceil(Math.random() * 151)
@@ -274,6 +284,7 @@ export default function PokeFight() {
     if(loaded) {
         return (
         <View h='full'>
+            {showConfetti && <ConfettiCannon count={200} origin={{x: win.width / 2, y: win.height / 2}} fadeOut={true}/>}
             <KeyboardAwareScrollView style={{zIndex: 3}} extraScrollHeight={30}>
                 <Box justifyContent='space-around' h='full' position='relative'>
                     {pokemon && 
@@ -291,8 +302,20 @@ export default function PokeFight() {
                                         <Text color='yellow.400'  fontWeight='extrabold' fontSize={18}>HP : </Text>
                                     </Center>
                                     <Box flex={5} justifyContent='flex-start'>
+                                        {/* <PresenceTransition 
+                                          visible={accuracyDiff} 
+                                          initial={{
+                                            opacity: 0,
+                                          }} 
+                                          animate={{
+                                              opacity: 1,
+                                              transition: {
+                                                  duration: 300,
+                                              }
+                                        }}> */}
                                         <Box bg={accuracy[1]} w={`${accuracy[0]}%`} h='2.5' mt='2.5'>
                                         </Box>
+                                      {/* </PresenceTransition> */}
                                     </Box>
                                 </HStack>
                             </Box>
@@ -366,7 +389,7 @@ export default function PokeFight() {
                     </Center>
                 </Box>
             </KeyboardAwareScrollView>
-            <Box zIndex={5} borderStyle='solid' borderWidth='2' w='full' borderRadius={reveal ? 0 : 5} p={1}  mt={5} style={{position: 'absolute', bottom: '10%', left: 0, right: 0}} bg={gameBoxColor}>
+            <Box zIndex={5} borderStyle='solid' borderWidth='2' w='full' borderRadius={reveal ? 0 : 7} p={1}  mt={5} style={{position: 'absolute', bottom: '10%', left: 0, right: 0}} bg={gameBoxColor}>
                 <VStack borderStyle='solid' borderWidth='4' borderRadius='5' p={3} pl={8}>
                     <HStack w='full' alignItems='center'>
                         <Box flex={1} ><Text fontSize={35} fontFamily="PokeGold" onPress={onInputGuess}>싸우다</Text></Box>
@@ -391,5 +414,5 @@ const styles = StyleSheet.create({
   },
   reveal: {
     opacity: 1,
-  }
+  },
 })
