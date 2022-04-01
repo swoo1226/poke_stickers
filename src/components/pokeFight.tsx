@@ -225,47 +225,48 @@ export default function PokeFight() {
         alert(`${koreanName?.length}글자 이름을 가진 포켓몬이에요`)
         return
       }
+      const guessChars = guess.split('')
+      const answerChars = koreanName?.split('')
       if(guess === koreanName) {
         const guessResults: Expectation[] = koreanName.split('').map((char) => {return {char, guessed: ['strike']}})
+        setExpectations([guessResults])
+        answerChars.map((char, index  ) => {
+          setPokemon(prev => {
+            let newStrikesPokemon = {...prev}
+            newStrikesPokemon.strikes![index] = 1
+            return newStrikesPokemon
+          })
+        })
+        setReveal(true)
+      } else {
+        let guessResults: Expectation[] = []
+        guessChars.map((char: string, index: number) => {
+          let newGuessResult: Expectation = {
+            char,
+            guessed: []
+          }
+          answerChars?.map((answerChar: string, answerIndex: number) => {
+            if(char === answerChar) {
+              if(index === answerIndex) {
+                newGuessResult.guessed.push('strike')
+                setPokemon(prev => {
+                  let newStrikesPokemon = {...prev}
+                  newStrikesPokemon.strikes![answerIndex] = 1
+                  return newStrikesPokemon
+                })
+              } else {
+                newGuessResult.guessed.push(index < answerIndex ? 'right' : 'left')
+              }
+            }
+          })
+          guessResults.push(newGuessResult)
+        })
         setExpectations(prev => {
           let orgExpectations = [...prev]
           orgExpectations.push(guessResults)
           return orgExpectations
         })
-        setReveal(true)
-        // 정답!!!
-        // 정답 맞출 때 완료할 것인지?
-        // return
-      }
-      const guessChars = guess.split('')
-      const answerChars = koreanName?.split('')
-      let guessResults: Expectation[] = []
-      guessChars.map((char: string, index: number) => {
-        let newGuessResult: Expectation = {
-          char,
-          guessed: []
-        }
-        answerChars?.map((answerChar: string, answerIndex: number) => {
-          if(char === answerChar) {
-            if(index === answerIndex) {
-              newGuessResult.guessed.push('strike')
-              setPokemon(prev => {
-                let newStrikesPokemon = {...prev}
-                newStrikesPokemon.strikes![answerIndex] = 1
-                return newStrikesPokemon
-              })
-            } else {
-              newGuessResult.guessed.push(index < answerIndex ? 'right' : 'left')
-            }
-          }
-        })
-        guessResults.push(newGuessResult)
-      })
-      setExpectations(prev => {
-        let orgExpectations = [...prev]
-        orgExpectations.push(guessResults)
-        return orgExpectations
-      })
+      } 
       setShowGuessResult(true)
       setTimeout(() => {setShowGuessResult(false)}, 1500)
     },[guess])
@@ -351,12 +352,13 @@ export default function PokeFight() {
                                     initial={{
                                         opacity: 0,
                                         scale: 0,
-                                        translateX: 100
+                                        translateX: 100,
+                                        translateY: 70,
                                     }} 
                                     animate={{
                                         opacity: 1,
-                                        scale: 1,
-                                        translateX: 0,
+                                        scale: 0.8,
+                                        translateX: 30,
                                         transition: {
                                             duration: 250,
                                         }
@@ -378,7 +380,7 @@ export default function PokeFight() {
                                         duration: 500,
                                     }
                                 }}>
-                                  <Image blurRadius={accuracy[0]/100 * 4} source={{uri: pokemon.imageFront}} style={[{width: win.width/1.7, height: win.width/1.7, shadowColor: '#000', shadowOffset: {width: 8, height: 3}, shadowOpacity: 0.3, shadowRadius: 5}, reveal ? styles.reveal : styles.veil]} />
+                                  <Image blurRadius={accuracy[0]/100 * 3} source={{uri: pokemon.imageFront}} style={[{width: win.width/1.7, height: win.width/1.7, shadowColor: '#000', shadowOffset: {width: 8, height: 3}, shadowOpacity: 0.3, shadowRadius: 5}, reveal ? styles.reveal : styles.veil]} />
                               </PresenceTransition>
                             </Box>
                         </HStack>
