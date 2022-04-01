@@ -1,16 +1,10 @@
-import React from 'react'
 import {
-  Box,
-  useColorModeValue,
-  Text,
-  Center,
-  VStack,
-  View
+  Box
 } from 'native-base'
 import PokeFight from '../components/pokeFight'
 import Navbar from '../components/navbar'
 
-const PokeScreen = () => {
+export default function PokeScreen () {
   return (
     <Box
       _dark={{bg: 'blueGray.900'}} _light={{bg: 'blueGray.50'}}
@@ -24,5 +18,3 @@ const PokeScreen = () => {
     </Box>
   )
 }
-
-export default PokeScreen

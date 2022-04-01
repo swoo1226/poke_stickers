@@ -9,7 +9,6 @@ import {
   useColorModeValue
 } from 'native-base'
 import { Feather } from '@expo/vector-icons'
-// import AnimatedColorBox from '../components/animated-color-box'
 import Navbar from '../components/navbar'
 // import Masthead from '../components/masthead'
 import LinkButton from '../components/link-button'
@@ -21,12 +20,7 @@ const AboutScreen = () => {
       bg={useColorModeValue('warmGray.50', 'warmGray.900')}
       w="full"
     >
-      {/* <Masthead
-        title="About this app"
-        image={require('../assets/about-masthead.png')}
-      > */}
         <Navbar />
-      {/* </Masthead> */}
       <ScrollView
         borderTopLeftRadius="20px"
         borderTopRightRadius="20px"

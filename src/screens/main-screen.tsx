@@ -12,14 +12,6 @@ export interface TaskItemData {
     subject: string;
     done: boolean
 }
-// const handleChangeTaskItemSubject = useCallback((id, newSubject) => {
-//     setData(prevData => {
-//         const newData = [...prevData]
-//         const orgIndex = prevData.findIndex((item) => item.id === id)
-//         newData[orgIndex].subject = newSubject
-//         return newData
-//     })
-// }, [])
 
 export default function MainScreen() {
     let initialData = [
@@ -46,10 +38,8 @@ export default function MainScreen() {
     ]
 
     const [data, setData] = useState(initialData)
-    useEffect(() => {console.log('newData', data)}, [data])
     const handleChangeTaskItemSubject = useCallback((id: string, newSubject: string) => {
         const newData = [...data]
-        console.log(newData, id)
         newData.map((task) => {if(task.id === id){task.subject = newSubject}})
         setData(newData)
     }, [data])

@@ -8,44 +8,9 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view
 import shortid from 'shortid';
 import { useFonts } from 'expo-font'
 import usePrevious from '../utils/usePrevious';
-import { storeObjectData, getObjectData } from '../utils/storage'
+import { storeObjectData, getObjectData, PokemonTypeColors, PokemonColorType, Pokemon, PokeDex } from '../utils/storage'
 import ConfettiCannon from 'react-native-confetti-cannon'
 const win = Dimensions.get('window')
-
-type PokemonTypeColors = {
-  normal: string
-  poison: string
-  psychic: string
-  grass: string
-  ground: string
-  ice: string
-  fire: string
-  rock: string
-  dragon: string
-  water: string
-  bug: string
-  dark: string
-  fighting: string
-  ghost: string
-  steel: string
-  flying: string
-  electric: string
-  fairy: string
-}
-
-type PokemonColorType = {
-  [key in keyof PokemonTypeColors]: string;
-};
-
-interface Pokemon {
-  id: number
-  name: string
-  imageFront: string
-  imageBack: string
-  type: keyof PokemonTypeColors
-  koreanName: string
-  strikes: number[]
-}
 
 type Guess = 'strike' | 'ball' | 'out' | 'left' | 'right'
 type Expectation = {
@@ -74,6 +39,19 @@ const PokemonTypeColor: PokemonColorType = {
   fairy: '#f9adff',
 }
 
+async function getPokedex(): Promise<PokeDex|null> {
+  const pokedex = await getObjectData('pokedex')
+  if(pokedex) {
+    return JSON.parse(pokedex)
+  }
+  return null
+}
+async function setPokedex(pokemon: Pokemon) {
+  const pokedex = await getPokedex()
+  if(pokedex){
+    await storeObjectData('pokedex',{...pokedex, [pokemon.id]: pokedex[pokemon.id] ? [...pokedex[pokemon.id], pokemon] : [pokemon]})
+  }
+}
 export default function PokeFight() {
     const [pokemon, setPokemon] = useState<Pokemon|null>()
     const [sound, setSound] = useState<any>()
@@ -90,6 +68,8 @@ export default function PokeFight() {
     const [reveal, setReveal] = useState<boolean>(false)
     const [accuracyDiff, setAccuracyDiff] = useState<boolean>(false)
     const [showConfetti, setShowConfetti] = useState<boolean>(false)
+
+    
     useEffect(() => {
         return sound
           ? () => {
@@ -122,6 +102,7 @@ export default function PokeFight() {
     }, [expectations])
     
     const prevAccuracy = usePrevious(accuracy)
+
     useEffect(() => {
       if(prevAccuracy && prevAccuracy![0] !== accuracy[0]) {
         //정답률 변경에 따른 애니메이션 효과
@@ -133,6 +114,11 @@ export default function PokeFight() {
       }
     }, [accuracy])
 
+    useEffect(() => {
+      if(showConfetti) {
+        setPokedex(pokemon!)
+      }
+    }, [showConfetti])
     const getPokemon = async (id: string) => {
         const data: Response = await fetch(`https://pokeapi.co/api/v2/pokemon/${id}`)
         const pokemon = await data.json()
@@ -170,6 +156,7 @@ export default function PokeFight() {
       sound.replayAsync()
       setTimeout(() => setShowSoundEffect(false), 1000)
     }
+
     const checkColors: any = {
         'strike': 'green.300',
         'left': 'yellow.300',
@@ -179,34 +166,20 @@ export default function PokeFight() {
         'left,right': 'yellow.200',
         'left,strike': 'lime.200'
     }
+
     const guessCheckedColors = useCallback((guessed: Guess[]) => {
       const guess = guessed.join(',')
       return checkColors[guess]??'red.400'
     }, [])
+
     const expectationJoiner = (expectation: Expectation[]) => { 
         return (expectation.map((guessed) => <Center bg={guessCheckedColors(guessed.guessed)} key={shortid.generate()} h={35} w={35} rounded="md" shadow={2}><Text fontSize={20} fontFamily='PokeGold'>{guessed.char}</Text></Center>))}
-    // const guessedViews = (expectations: Expectation[][]) => {
-    //   return (
-    //     <ScrollView w='full' h='50%'>
-    //       {expectations.map((expectation, index) => 
-    //         <HStack 
-    //           alignItems="center"
-    //           w="full"
-    //           justifyContent="center"
-    //           space={2}
-    //           py={5}
-    //           key={`expectation${index}`}
-    //         >
-    //         {expectationJoiner(expectation)}
-    //         </HStack>
-    //       )}
-    //     </ScrollView>
-    //   )
-    // }
+
     const onInputGuess = () => {
         setGuess('')
         guessRef.current?.focus()
     }
+
     const onGuess = useCallback(() => {
       const koreanName = pokemon?.koreanName
       /**

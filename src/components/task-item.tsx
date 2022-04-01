@@ -12,7 +12,6 @@ interface Props extends Pick<PanGestureHandlerProps, 'simultaneousHandlers'> {
     isDone: boolean
     onPressLabel?: () => void
     onRemove?: (id: string) => void
-    // onChangeSubject?: (subject: string) => void
     onChangeSubject?: (id: string, newSubject: string) => void
     onFinishEditing?: () => void
     subject: string
@@ -93,10 +92,8 @@ const TaskItem = ({isEditing, isDone, subject, onPressLabel, onRemove, onChangeS
                   autoFocus
                   blurOnSubmit
                   fontFamily="PokeGold"
-                  // onChange={handleChangeSubject}
                   onChange={handleChangeSubject}
                   onBlur={onFinishEditing}
-                  // bg={useColorModeValue('white', 'warmGray.500')}
               />
             </HStack>
           </SwipableView>
