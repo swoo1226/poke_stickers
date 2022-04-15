@@ -1,23 +1,37 @@
-import { useCallback, useState } from "react";
-import { Box, VStack, Center, HStack, Text, ScrollView } from "native-base";
-import { Image, StyleSheet, Dimensions, VirtualizedList, SafeAreaView } from 'react-native'
-import NavBar from "../components/navbar";
-import { getObjectData, PokeDex, Pokemon, PokemonColorType } from "../utils/storage";
+import { useCallback, useState } from 'react'
+import { Box, VStack, Center, HStack, Text, ScrollView } from 'native-base'
+import {
+  Image,
+  StyleSheet,
+  Dimensions,
+  VirtualizedList,
+  SafeAreaView
+} from 'react-native'
+import NavBar from '../components/navbar'
+import {
+  getObjectData,
+  PokeDex,
+  Pokemon,
+  PokemonColorType
+} from '../utils/storage'
 import pokemonKorean from '../../assets/pokemon/pokemon-korean.json'
-import { useFocusEffect } from "@react-navigation/core";
+import { useFocusEffect } from '@react-navigation/core'
 const WIN = Dimensions.get('window')
 
-async function getPokedex(): Promise<PokeDex|null> {
+async function getPokedex(): Promise<PokeDex | null> {
   const pokedex = await getObjectData('pokedex')
-  if(pokedex) {
+  console.log('pokedex', pokedex)
+  if (pokedex) {
     return JSON.parse(pokedex)
   }
   return null
 }
 
 async function setPokedex(callback: (dex: PokeDex) => void) {
+  console.log('setPokedex')
   const pokedex = await getPokedex()
-  if(pokedex){
+  console.log('getPokedex', pokedex)
+  if (pokedex) {
     await callback(pokedex)
   }
 }
@@ -39,21 +53,35 @@ const PokemonTypeColor: PokemonColorType = {
   steel: '#c4c2db',
   flying: '#79a3ff',
   electric: '#fee33a',
-  fairy: '#f9adff',
+  fairy: '#f9adff'
 }
 
 const koreanNameChip = (pokemon: Pokemon) => {
   return (
-    <HStack style={{alignItems: 'center', borderRadius: 15, borderWidth: 0.5, borderColor: 'gray', alignSelf: 'flex-start'}} shadow={2}>
-      <HStack style={{alignItems: 'center'}}>
-        <Box borderRadius={15} backgroundColor={PokemonTypeColor[pokemon!.type]} pl={2} pr={2}>
-        {pokemonKorean[pokemon.id].num}
-      </Box>
-      <Center pl={1} pr={2}>
-        <Text fontWeight='bold' _dark={{color: 'dark.50'}}>
-        {pokemon!.koreanName}
-        </Text>
-      </Center>
+    <HStack
+      style={{
+        alignItems: 'center',
+        borderRadius: 15,
+        borderWidth: 0.5,
+        borderColor: 'gray',
+        alignSelf: 'flex-start'
+      }}
+      shadow={2}
+    >
+      <HStack style={{ alignItems: 'center' }}>
+        <Box
+          borderRadius={15}
+          backgroundColor={PokemonTypeColor[pokemon!.type]}
+          pl={2}
+          pr={2}
+        >
+          {pokemonKorean[pokemon.id].num}
+        </Box>
+        <Center pl={1} pr={2}>
+          <Text fontWeight="bold" _dark={{ color: 'dark.50' }}>
+            {pokemon!.koreanName}
+          </Text>
+        </Center>
       </HStack>
     </HStack>
   )
@@ -63,23 +91,35 @@ export default function DexScreen() {
   const [caughtPokemons, setCaughtPokemons] = useState<PokeDex>()
   useFocusEffect(
     useCallback(() => {
+      console.log('focused')
       setPokedex(setCaughtPokemons)
     }, [])
   )
-  return(
-    <Box _dark={{bg: 'blueGray.900'}} _light={{bg: 'blueGray.50'}} px={5} flex={1} w='full'>
-      <NavBar /> 
-      <ScrollView w='full'>
-        <VStack space={5} alignItems='center' w='full'>
-          {caughtPokemons && Object.entries(caughtPokemons).map(([id, seals]) => 
-            seals.map((pokemon: Pokemon) => 
-            <Box shadow={1} style={styles.seal}>
-              {koreanNameChip(pokemon)}
-              <Image source={{uri: pokemon.imageFront}} style={styles.sealImage} resizeMethod='scale' />
-            </Box>
-            )
-          )}
-        </VStack> 
+  return (
+    <Box
+      _dark={{ bg: 'blueGray.900' }}
+      _light={{ bg: 'blueGray.50' }}
+      px={5}
+      flex={1}
+      w="full"
+    >
+      <NavBar />
+      <ScrollView w="full">
+        <VStack space={5} alignItems="center" w="full">
+          {caughtPokemons &&
+            Object.entries(caughtPokemons).map(([id, seals]) =>
+              seals.map((pokemon: Pokemon) => (
+                <Box shadow={1} style={styles.seal}>
+                  {koreanNameChip(pokemon)}
+                  <Image
+                    source={{ uri: pokemon.imageFront }}
+                    style={styles.sealImage}
+                    resizeMethod="scale"
+                  />
+                </Box>
+              ))
+            )}
+        </VStack>
       </ScrollView>
     </Box>
   )
@@ -96,6 +136,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff'
   },
   sealImage: {
-    flex: 1,
-  },
+    flex: 1
+  }
 })
